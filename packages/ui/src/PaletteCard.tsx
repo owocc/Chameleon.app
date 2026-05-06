@@ -1,4 +1,5 @@
-import type { Palette } from '@chameleon/shared'
+import type { Palette, PaletteRole } from '@chameleon/shared'
+import { PALETTE_ROLES, PALETTE_ROLE_LABELS } from '@chameleon/shared'
 import { ColorSwatch } from './ColorSwatch'
 
 interface PaletteCardProps {
@@ -17,8 +18,13 @@ export function PaletteCard({ palette, onClick }: PaletteCardProps) {
         <p className="text-xs text-gray-500 mb-3">{palette.description}</p>
       )}
       <div className="flex gap-2 flex-wrap">
-        {palette.colors.map(c => (
-          <ColorSwatch key={c.id} color={c.value} label={c.label} size="sm" />
+        {PALETTE_ROLES.filter(r => palette.roles[r]).map(role => (
+          <ColorSwatch
+            key={role}
+            color={palette.roles[role]}
+            label={PALETTE_ROLE_LABELS[role as PaletteRole]}
+            size="sm"
+          />
         ))}
       </div>
     </div>
