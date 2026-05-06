@@ -3,30 +3,30 @@ import { TanStackRouterDevtools } from '@tanstack/router-devtools'
 
 export const Route = createRootRoute({
   component: () => (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-      <header className="border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold hover:opacity-80 transition-opacity">
+    <div className="min-h-screen text-[var(--chm-ink)]">
+      <header className="sticky top-0 z-40 border-b border-[var(--chm-hairline)] bg-[var(--chm-canvas)]/90 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+          <Link to="/" className="font-serif text-2xl font-light tracking-normal hover:opacity-75">
             Chameleon
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
+          <nav className="flex items-center gap-2 text-[15px] font-medium">
             <Link
               to="/templates"
-              className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-              activeProps={{ className: 'text-indigo-500 font-medium' }}
+              className="rounded-full px-4 py-2 text-[var(--chm-body)] transition-colors hover:bg-[var(--chm-surface-strong)] hover:text-[var(--chm-ink)]"
+              activeProps={{ className: 'bg-[var(--chm-surface-strong)] text-[var(--chm-ink)]' }}
             >
               模板
             </Link>
             <Link
               to="/palette/new"
-              className="px-3 py-1.5 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+              className="rounded-full bg-[var(--chm-primary)] px-4 py-2 text-white transition-colors hover:bg-[var(--chm-primary-active)]"
             >
               新建色板
             </Link>
           </nav>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:py-12">
         <Outlet />
       </main>
       <TanStackRouterDevtools />

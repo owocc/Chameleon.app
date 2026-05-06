@@ -36,31 +36,31 @@ function CreatePalettePage() {
       {
         id: 'complementary',
         title: '补色',
-        description: '适合制造强对比和强调动作',
+        description: '色环对侧的强对比，适合强调动作。',
         colors: [complementaryColor(baseColor)],
       },
       {
         id: 'split-complementary',
         title: '分裂补色',
-        description: '比补色柔和，适合做强调色组合',
+        description: '保留对比，但比补色更柔和。',
         colors: splitComplementaryColors(baseColor),
       },
       {
         id: 'analogous',
         title: '类似色',
-        description: '相邻色相，适合做自然过渡',
+        description: '相邻色相，适合做自然过渡。',
         colors: analogousColors(baseColor),
       },
       {
         id: 'triadic',
         title: '三元色',
-        description: '色环均分，适合做活跃的多色方案',
+        description: '色环均分，适合更活跃的组合。',
         colors: triadicColors(baseColor),
       },
       {
         id: 'monochromatic',
         title: '单色阶',
-        description: '同色相明度阶梯，适合表面和背景',
+        description: '同色相明度阶梯，适合背景和表面。',
         colors: monochromaticColors(baseColor, 5),
       },
     ],
@@ -109,156 +109,189 @@ function CreatePalettePage() {
   }
 
   return (
-    <div className="mx-auto max-w-md pb-28">
-      <div className="mb-6 flex items-center justify-between gap-3">
+    <div className="mx-auto max-w-5xl pb-28">
+      <div className="mb-8 flex items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => navigate({ to: '/' })}
-          className="min-h-11 rounded-full px-3 text-sm font-medium text-gray-500 active:bg-gray-100 dark:text-gray-400 dark:active:bg-gray-900"
+          className="min-h-10 rounded-full border border-[var(--chm-hairline)] px-4 text-sm font-medium text-[var(--chm-ink)] active:bg-[var(--chm-surface-strong)]"
         >
           返回
         </button>
         <button
           type="button"
           onClick={savePalette}
-          className="min-h-11 rounded-full bg-gray-950 px-5 text-sm font-semibold text-white active:scale-[0.98] dark:bg-white dark:text-gray-950"
+          className="min-h-10 rounded-full bg-[var(--chm-primary)] px-6 text-sm font-medium text-white active:bg-[var(--chm-primary-active)]"
         >
-          保存
+          保存色板
         </button>
       </div>
 
-      <section className="mb-6">
-        <label className="mb-2 block text-sm font-medium text-gray-500 dark:text-gray-400">
-          色板名称
-        </label>
-        <input
-          value={palette.name}
-          onChange={(event) => updatePaletteName(event.target.value)}
-          className="min-h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-lg font-semibold outline-none transition focus:border-gray-950 dark:border-gray-800 dark:bg-gray-900 dark:focus:border-white"
-          placeholder="给这套颜色起个名字"
-        />
-      </section>
-
-      <section className="mb-6 overflow-hidden rounded-3xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-        <div
-          className="flex min-h-32 flex-col justify-end p-5"
-          style={{
-            background: `linear-gradient(135deg, ${palette.roles.primary}, ${palette.roles.accent})`,
-          }}
-        >
-          <p className="text-sm font-medium text-white/75">主色驱动</p>
-          <p className="mt-1 font-mono text-3xl font-semibold text-white">{baseColor}</p>
-        </div>
-        <div className="p-4">
-          <label className="mb-3 block text-sm font-medium text-gray-500 dark:text-gray-400">
-            选择主色
-          </label>
-          <div className="flex items-center gap-3">
+      <section className="mb-8 overflow-hidden rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] shadow-[0_22px_70px_rgb(12_10_9/0.07)]">
+        <div className="relative overflow-hidden px-6 py-8 sm:px-8">
+          <div className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full bg-[var(--chm-gradient-lavender)] opacity-55 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 left-12 h-52 w-52 rounded-full bg-[var(--chm-gradient-sky)] opacity-45 blur-3xl" />
+          <div className="relative max-w-2xl">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--chm-muted)]">
+              New palette
+            </p>
             <input
-              type="color"
-              value={baseColor}
-              onChange={(event) => updateBaseColor(event.target.value as HexColor)}
-              className="h-12 w-14 rounded-2xl border border-gray-200 bg-transparent p-1 dark:border-gray-700"
-              aria-label="选择主色"
+              value={palette.name}
+              onChange={(event) => updatePaletteName(event.target.value)}
+              className="w-full bg-transparent font-serif text-4xl font-light leading-tight tracking-normal text-[var(--chm-ink)] outline-none sm:text-5xl"
+              placeholder="给这套颜色起个名字"
             />
-            <input
-              value={baseColor}
-              onChange={(event) => {
-                const next = event.target.value
-                if (isHexColor(next)) updateBaseColor(next)
-              }}
-              className="min-h-12 flex-1 rounded-2xl border border-gray-200 bg-gray-50 px-4 font-mono text-sm uppercase outline-none focus:border-gray-950 dark:border-gray-700 dark:bg-gray-950 dark:focus:border-white"
-              aria-label="主色 HEX"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="mb-6">
-        <div className="mb-3 flex items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold">辅助配色</h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              点击候选色后选择要填入的色位
+            <p className="mt-4 max-w-xl text-sm leading-6 text-[var(--chm-body)]">
+              先选一个主色，再把生成的候选色沉淀到五个语义角色里。
             </p>
           </div>
         </div>
-        <div className="space-y-3">
-          {candidateGroups.map((group) => (
+        <div className="grid grid-cols-5 border-t border-[var(--chm-hairline)]">
+          {PALETTE_ROLES.map((role) => (
             <div
-              key={group.id}
-              className="rounded-3xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
+              key={role}
+              className="min-h-24 p-3"
+              style={{ backgroundColor: palette.roles[role] }}
             >
-              <div className="mb-3">
-                <h3 className="text-sm font-semibold">{group.title}</h3>
-                <p className="mt-1 text-xs leading-5 text-gray-500 dark:text-gray-400">
-                  {group.description}
-                </p>
-              </div>
-              <div className="grid grid-cols-5 gap-2">
-                {group.colors.map((color) => (
-                  <button
-                    key={`${group.id}-${color}`}
-                    type="button"
-                    onClick={() => setSelectedColor(color as HexColor)}
-                    className="min-h-16 rounded-2xl border border-black/10 p-1 text-left active:scale-[0.97] dark:border-white/10"
-                    style={{ backgroundColor: color }}
-                    aria-label={`应用候选色 ${color}`}
-                  >
-                    <span className="block truncate rounded-full bg-white/85 px-1.5 py-0.5 text-[10px] font-medium text-gray-950 shadow-sm">
-                      {color}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              <span className="rounded-full bg-white/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--chm-ink)] shadow-sm">
+                {role}
+              </span>
             </div>
           ))}
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">色板角色</h2>
-        <div className="space-y-3">
-          {PALETTE_ROLES.map((role) => (
-            <RoleColorField
-              key={role}
-              role={role}
-              value={palette.roles[role]}
-              onChange={(color) => updateRole(role, color)}
-            />
-          ))}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-6">
+          <section className="rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-5 shadow-[0_18px_48px_rgb(12_10_9/0.05)] sm:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-medium tracking-[0.01em]">主色</h2>
+                <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
+                  所有辅助方案都会跟随主色实时更新。
+                </p>
+              </div>
+              <div className="rounded-full bg-[var(--chm-surface-strong)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-ink)]">
+                Primary
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <input
+                type="color"
+                value={baseColor}
+                onChange={(event) => updateBaseColor(event.target.value as HexColor)}
+                className="h-16 w-16 rounded-2xl border border-[var(--chm-hairline)] bg-transparent p-1"
+                aria-label="选择主色"
+              />
+              <input
+                value={baseColor}
+                onChange={(event) => {
+                  const next = event.target.value
+                  if (isHexColor(next)) updateBaseColor(next)
+                }}
+                className="min-h-12 flex-1 rounded-lg border border-[var(--chm-hairline)] bg-[var(--chm-canvas-soft)] px-4 font-mono text-sm uppercase text-[var(--chm-ink)] outline-none focus:border-[var(--chm-primary)]"
+                aria-label="主色 HEX"
+              />
+            </div>
+          </section>
+
+          <section>
+            <div className="mb-4">
+              <h2 className="text-xl font-medium tracking-[0.01em]">辅助配色</h2>
+              <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
+                点击任意候选色，再选择要应用到的色板角色。
+              </p>
+            </div>
+            <div className="space-y-4">
+              {candidateGroups.map((group) => (
+                <div
+                  key={group.id}
+                  className="rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-5 shadow-[0_18px_48px_rgb(12_10_9/0.05)]"
+                >
+                  <div className="mb-4">
+                    <h3 className="text-lg font-medium tracking-[0.01em]">{group.title}</h3>
+                    <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
+                      {group.description}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                    {group.colors.map((color) => (
+                      <button
+                        key={`${group.id}-${color}`}
+                        type="button"
+                        onClick={() => setSelectedColor(color as HexColor)}
+                        className="group overflow-hidden rounded-xl border border-[var(--chm-hairline)] bg-[var(--chm-canvas-soft)] p-2 text-left transition active:scale-[0.98]"
+                        aria-label={`应用候选色 ${color}`}
+                      >
+                        <span
+                          className="block h-20 rounded-lg border border-black/10"
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className="mt-2 block font-mono text-xs uppercase text-[var(--chm-muted)]">
+                          {color}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
-      </section>
+
+        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-5 shadow-[0_18px_48px_rgb(12_10_9/0.05)]">
+            <h2 className="text-xl font-medium tracking-[0.01em]">色板角色</h2>
+            <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
+              每个角色都可以手动微调，也可以从候选色一键填入。
+            </p>
+            <div className="mt-5 space-y-3">
+              {PALETTE_ROLES.map((role) => (
+                <RoleColorField
+                  key={role}
+                  role={role}
+                  value={palette.roles[role]}
+                  onChange={(color) => updateRole(role, color)}
+                />
+              ))}
+            </div>
+          </div>
+        </aside>
+      </div>
 
       {selectedColor && (
         <div
-          className="fixed inset-0 z-50 flex items-end bg-black/35 px-3 pb-3"
+          className="fixed inset-0 z-50 flex items-end bg-black/35 px-3 pb-3 backdrop-blur-sm"
           onClick={() => setSelectedColor(null)}
         >
           <div
-            className="w-full rounded-3xl bg-white p-4 shadow-2xl dark:bg-gray-950"
+            className="mx-auto w-full max-w-md rounded-[24px] bg-[var(--chm-surface-card)] p-5 shadow-[0_28px_80px_rgb(12_10_9/0.25)]"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-4 flex items-center gap-3">
+            <div className="mb-5 flex items-center gap-4">
               <div
-                className="h-12 w-12 rounded-2xl border border-black/10 dark:border-white/10"
+                className="h-14 w-14 rounded-xl border border-[var(--chm-hairline)]"
                 style={{ backgroundColor: selectedColor }}
               />
               <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">应用候选色</p>
-                <p className="font-mono text-lg font-semibold">{selectedColor}</p>
+                <p className="text-sm text-[var(--chm-muted)]">应用候选色</p>
+                <p className="font-mono text-xl font-medium uppercase text-[var(--chm-ink)]">
+                  {selectedColor}
+                </p>
               </div>
             </div>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid gap-2">
               {PALETTE_ROLES.map((role) => (
                 <button
                   key={role}
                   type="button"
                   onClick={() => applyCandidate(role)}
-                  className="flex min-h-12 items-center justify-between rounded-2xl bg-gray-100 px-4 text-left font-medium active:bg-gray-200 dark:bg-gray-900 dark:active:bg-gray-800"
+                  className="flex min-h-12 items-center justify-between rounded-xl bg-[var(--chm-surface-strong)] px-4 text-left font-medium text-[var(--chm-ink)] active:bg-[var(--chm-hairline)]"
                 >
                   <span>{PALETTE_ROLE_LABELS[role]}</span>
-                  <span className="font-mono text-xs text-gray-500">{role}</span>
+                  <span className="font-mono text-xs uppercase text-[var(--chm-muted)]">
+                    {role}
+                  </span>
                 </button>
               ))}
             </div>
@@ -279,23 +312,23 @@ function RoleColorField({
   onChange: (color: HexColor) => void
 }) {
   return (
-    <div className="rounded-3xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-2xl border border-[var(--chm-hairline)] bg-[var(--chm-canvas-soft)] p-3">
       <div className="mb-3 flex items-center gap-3">
         <div
-          className="h-12 w-12 rounded-2xl border border-black/10 dark:border-white/10"
+          className="h-11 w-11 rounded-lg border border-black/10"
           style={{ backgroundColor: value }}
         />
         <div className="min-w-0 flex-1">
-          <p className="font-medium">{PALETTE_ROLE_LABELS[role]}</p>
-          <p className="font-mono text-xs text-gray-500">{role}</p>
+          <p className="text-sm font-medium text-[var(--chm-ink)]">{PALETTE_ROLE_LABELS[role]}</p>
+          <p className="font-mono text-[11px] uppercase text-[var(--chm-muted)]">{role}</p>
         </div>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <input
           type="color"
           value={value}
           onChange={(event) => onChange(event.target.value as HexColor)}
-          className="h-11 w-12 rounded-xl border border-gray-200 bg-transparent p-1 dark:border-gray-700"
+          className="h-10 w-11 rounded-lg border border-[var(--chm-hairline)] bg-transparent p-1"
           aria-label={`选择${PALETTE_ROLE_LABELS[role]}`}
         />
         <input
@@ -304,7 +337,7 @@ function RoleColorField({
             const next = event.target.value
             if (isHexColor(next)) onChange(next)
           }}
-          className="min-h-11 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-3 font-mono text-sm uppercase outline-none focus:border-gray-950 dark:border-gray-700 dark:bg-gray-950 dark:focus:border-white"
+          className="min-h-10 min-w-0 flex-1 rounded-lg border border-[var(--chm-hairline)] bg-white px-3 font-mono text-xs uppercase text-[var(--chm-ink)] outline-none focus:border-[var(--chm-primary)]"
           aria-label={`${PALETTE_ROLE_LABELS[role]} HEX`}
         />
       </div>
