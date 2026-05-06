@@ -1,0 +1,23 @@
+{
+  "name": "chameleon",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Chameleon - 色彩管理工具",
+  "scripts": {
+    "dev": "vp run --recursive dev",
+    "build": "vp run --filter @chameleon/web build",
+    "test": "vp test",
+    "check": "vp check",
+    "lint": "vp check --lint",
+    "fmt": "vp check --fmt",
+    "typecheck": "vp run --recursive typecheck",
+    "prepare": "vp config"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.33.4",
+  "devDependencies": {
+    "vite-plus": "catalog:"
+  }
+}
