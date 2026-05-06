@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Palette } from '@chameleon/shared'
 import { PaletteCard } from '@chameleon/ui'
 
@@ -7,8 +7,14 @@ export const Route = createFileRoute('/')({
   component: HomePage,
 })
 
+const STORAGE_KEY = 'chameleon:palettes'
+
 function HomePage() {
-  const [palettes] = useState<Palette[]>([])
+  const [palettes, setPalettes] = useState<Palette[]>([])
+
+  useEffect(() => {
+    setPalettes(readStoredPalettes())
+  }, [])
 
   return (
     <div>
@@ -35,11 +41,22 @@ function HomePage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {palettes.map(p => (
+          {palettes.map((p) => (
             <PaletteCard key={p.id} palette={p} />
           ))}
         </div>
       )}
     </div>
   )
+}
+
+function readStoredPalettes(): Palette[] {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
 }
