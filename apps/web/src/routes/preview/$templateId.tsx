@@ -338,12 +338,12 @@ function ControlsIsland({
 
   // ── 长按检测 — 挂载到 document body，不阻塞模板交互 ──
   useEffect(() => {
-    // 岛可见或弹层打开时不需要长按检测
-    if (islandVisible || menuOpen || palettePanelOpen) return
-
     const clearTimer = () => clearTimeout(longPressTimer.current)
 
-    const handleTouchStart = () => {
+    const handleStart = (e: Event) => {
+      // 点击岛内部不触发长按
+      if (containerRef.current?.contains(e.target as Node)) return
+      clearTimeout(longPressTimer.current)
       longPressTimer.current = setTimeout(() => {
         setIslandVisible((v) => !v)
         setMenuOpen(false)
@@ -351,31 +351,23 @@ function ControlsIsland({
       }, LONG_PRESS_MS)
     }
 
-    const handleMouseDown = () => {
-      longPressTimer.current = setTimeout(() => {
-        setIslandVisible((v) => !v)
-        setMenuOpen(false)
-        setPalettePanelOpen(false)
-      }, LONG_PRESS_MS)
-    }
-
-    document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    document.addEventListener('touchstart', handleStart, { passive: true })
     document.addEventListener('touchend', clearTimer, { passive: true })
     document.addEventListener('touchmove', clearTimer, { passive: true })
-    document.addEventListener('mousedown', handleMouseDown)
+    document.addEventListener('mousedown', handleStart)
     document.addEventListener('mouseup', clearTimer)
     document.addEventListener('mouseleave', clearTimer)
 
     return () => {
-      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchstart', handleStart)
       document.removeEventListener('touchend', clearTimer)
       document.removeEventListener('touchmove', clearTimer)
-      document.removeEventListener('mousedown', handleMouseDown)
+      document.removeEventListener('mousedown', handleStart)
       document.removeEventListener('mouseup', clearTimer)
       document.removeEventListener('mouseleave', clearTimer)
       clearTimeout(longPressTimer.current)
     }
-  }, [islandVisible, menuOpen, palettePanelOpen])
+  }, [])
 
   // 关闭所有弹层
   const closeAll = useCallback(() => {
