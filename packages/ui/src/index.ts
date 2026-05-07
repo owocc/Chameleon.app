@@ -1,3 +1,5 @@
 export { ColorSwatch } from './ColorSwatch'
 export { PaletteCard } from './PaletteCard'
 export { ColorPicker } from './ColorPicker'
+export { WeChatTemplate } from './WeChatTemplate'
+export { XTemplate } from './XTemplate'
