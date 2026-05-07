@@ -75,6 +75,26 @@ export const BUILTIN_MOBILE_TEMPLATES: MobileTemplate[] = [
   },
 ]
 
+// ── 桌面模板系统 ──
+
+export type DesktopTemplateId = 'macos'
+
+export interface DesktopTemplate {
+  id: DesktopTemplateId
+  name: string
+  description: string
+  previewHint: string
+}
+
+export const BUILTIN_DESKTOP_TEMPLATES: DesktopTemplate[] = [
+  {
+    id: 'macos',
+    name: 'macOS',
+    description: '桌面窗口 — 标题栏、菜单栏、侧栏、文件列表',
+    previewHint: '覆盖窗口控件、菜单栏、侧栏选区、列表高亮和按钮态',
+  },
+]
+
 // ── 模板 Token 映射 ──
 
 /** 渲染模板时用到的 token 集合 */
@@ -98,7 +118,7 @@ export interface TemplateTokenMap {
  */
 export function mapPaletteToTemplateTokens(
   roles: PaletteRoleMap,
-  templateId?: MobileTemplateId,
+  templateId?: MobileTemplateId | DesktopTemplateId,
 ): TemplateTokenMap {
   // 通用映射：secondaryText 从 text 派生（60% 透明度）
   const textRgb = hexToRgb(roles.text)
@@ -140,6 +160,21 @@ export function mapPaletteToTemplateTokens(
     }
   }
 
+  if (templateId === 'macos') {
+    // macOS 特有 token：菜单栏元素、窗口控制、选区高亮
+    tokens.extra = {
+      menuBg: roles.surface,
+      menuText: roles.text,
+      sidebarBg: lighten(roles.surface, 10),
+      sidebarSelection: hexToRgba(roles.primary, 0.15) ?? roles.primary,
+      sidebarText: roles.text,
+      highlight: roles.accent,
+      trafficLightClose: '#ff5f57',
+      trafficLightMinimize: '#febc2e',
+      trafficLightMaximize: '#28c840',
+    }
+  }
+
   return tokens
 }
 
@@ -178,6 +213,12 @@ export function hexToRgb(hex: string): { r: number; g: number; b: number } | nul
     : clean
   const num = parseInt(full, 16)
   return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }
+}
+
+export function hexToRgba(hex: string, alpha: number): string | null {
+  const rgb = hexToRgb(hex)
+  if (!rgb) return null
+  return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
 }
 
 export function hexToHsl(hex: string): { h: number; s: number; l: number } | null {

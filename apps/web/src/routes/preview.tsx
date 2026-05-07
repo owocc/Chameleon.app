@@ -1,9 +1,16 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
 import { useEffect, useState } from 'react'
-import type { Palette, MobileTemplateId } from '@chameleon/shared'
-import { BUILTIN_MOBILE_TEMPLATES } from '@chameleon/shared'
-import { WeChatTemplate, XTemplate } from '@chameleon/ui'
+import type { Palette, MobileTemplateId, DesktopTemplateId } from '@chameleon/shared'
+import {
+  BUILTIN_MOBILE_TEMPLATES,
+  BUILTIN_DESKTOP_TEMPLATES,
+} from '@chameleon/shared'
+import { WeChatTemplate, XTemplate, MacOSTemplate } from '@chameleon/ui'
+
+type TemplateId = MobileTemplateId | DesktopTemplateId
+
+const ALL_TEMPLATES = [...BUILTIN_MOBILE_TEMPLATES, ...BUILTIN_DESKTOP_TEMPLATES]
 
 const previewSearchSchema = z.object({
   paletteId: z.string().optional(),
@@ -22,8 +29,8 @@ function PreviewPage() {
   const search = Route.useSearch()
   const [palettes, setPalettes] = useState<Palette[]>([])
   const [selectedPaletteId, setSelectedPaletteId] = useState(search.paletteId ?? '')
-  const [selectedTemplateId, setSelectedTemplateId] = useState<MobileTemplateId>(
-    (search.templateId as MobileTemplateId) ?? 'wechat',
+  const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(
+    (search.templateId as TemplateId) ?? 'wechat',
   )
 
   useEffect(() => {
@@ -45,7 +52,8 @@ function PreviewPage() {
   }, [selectedPaletteId, selectedTemplateId, navigate])
 
   const currentPalette = palettes.find((p) => p.id === selectedPaletteId)
-  const currentTemplate = BUILTIN_MOBILE_TEMPLATES.find((t) => t.id === selectedTemplateId)
+  const currentTemplate = ALL_TEMPLATES.find((t) => t.id === selectedTemplateId)
+  const isDesktop = selectedTemplateId === 'macos'
 
   return (
     <div className="space-y-8">
@@ -67,7 +75,7 @@ function PreviewPage() {
       </section>
 
       {/* 选择栏 */}
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-wrap items-end gap-6">
         {/* 色板选择 */}
         <div className="min-w-[200px] flex-1 sm:flex-none">
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
@@ -118,14 +126,14 @@ function PreviewPage() {
           <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
             模板
           </label>
-          <div className="flex gap-2">
-            {BUILTIN_MOBILE_TEMPLATES.map((t) => {
+          <div className="flex flex-wrap gap-2">
+            {ALL_TEMPLATES.map((t) => {
               const isActive = t.id === selectedTemplateId
               return (
                 <button
                   key={t.id}
                   type="button"
-                  onClick={() => setSelectedTemplateId(t.id)}
+                  onClick={() => setSelectedTemplateId(t.id as TemplateId)}
                   className="rounded-full border px-5 py-2 text-sm font-medium transition-all"
                   style={{
                     borderColor: isActive ? 'var(--chm-primary)' : 'var(--chm-hairline)',
@@ -144,20 +152,22 @@ function PreviewPage() {
       {/* 预览区 */}
       {currentPalette ? (
         <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-center">
-          {/* 手机模拟器 */}
+          {/* 模板模拟器 */}
           <div className="shrink-0">
             <div className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
               {currentTemplate?.name ?? '未知模板'}
             </div>
             {selectedTemplateId === 'wechat' ? (
               <WeChatTemplate palette={currentPalette} />
-            ) : (
+            ) : selectedTemplateId === 'x' ? (
               <XTemplate palette={currentPalette} />
+            ) : (
+              <MacOSTemplate palette={currentPalette} />
             )}
           </div>
 
           {/* 色板信息侧栏 */}
-          <div className="w-full max-w-xs shrink-0">
+          <div className={`w-full shrink-0 ${isDesktop ? 'max-w-xs' : 'max-w-xs'}`}>
             <div className="rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-5 shadow-[0_18px_48px_rgb(12_10_9/0.05)]">
               <h3 className="text-lg font-medium tracking-[0.01em] text-[var(--chm-ink)]">
                 {currentPalette.name}
@@ -208,7 +218,7 @@ function PreviewPage() {
         <div className="rounded-[24px] border border-dashed border-[var(--chm-hairline-strong)] bg-[var(--chm-canvas-soft)] px-6 py-20 text-center">
           <h3 className="font-serif text-3xl font-light text-[var(--chm-ink)]">请选择一个色板</h3>
           <p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-[var(--chm-body)]">
-            在上方选择一个色板，即可在移动模板中预览配色效果。
+            在上方选择一个色板，即可在模板中预览配色效果。
           </p>
         </div>
       )}
