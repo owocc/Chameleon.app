@@ -150,8 +150,9 @@ function TemplateCard({
 }) {
   return (
     <Link
-      to="/preview"
-      search={{ paletteId: undefined, templateId: template.id as any }}
+      to="/preview/$templateId"
+      params={{ templateId: template.id }}
+      search={{ paletteId: undefined }}
       className="group relative block overflow-hidden rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_18px_48px_rgb(12_10_9/0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgb(12_10_9/0.1)]"
     >
       {/* 平台色条 */}

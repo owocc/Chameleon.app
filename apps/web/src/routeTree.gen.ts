@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as PreviewRouteImport } from './routes/preview'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PreviewIndexRouteImport } from './routes/preview/index'
+import { Route as PreviewTemplateIdRouteImport } from './routes/preview/$templateId'
 import { Route as PaletteNewRouteImport } from './routes/palette/new'
 import { Route as PalettePaletteIdRouteImport } from './routes/palette/$paletteId'
 
@@ -30,6 +32,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PreviewIndexRoute = PreviewIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PreviewRoute,
+} as any)
+const PreviewTemplateIdRoute = PreviewTemplateIdRouteImport.update({
+  id: '/$templateId',
+  path: '/$templateId',
+  getParentRoute: () => PreviewRoute,
+} as any)
 const PaletteNewRoute = PaletteNewRouteImport.update({
   id: '/palette/new',
   path: '/palette/new',
@@ -43,25 +55,30 @@ const PalettePaletteIdRoute = PalettePaletteIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/preview': typeof PreviewRoute
+  '/preview': typeof PreviewRouteWithChildren
   '/templates': typeof TemplatesRoute
   '/palette/$paletteId': typeof PalettePaletteIdRoute
   '/palette/new': typeof PaletteNewRoute
+  '/preview/$templateId': typeof PreviewTemplateIdRoute
+  '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/preview': typeof PreviewRoute
   '/templates': typeof TemplatesRoute
   '/palette/$paletteId': typeof PalettePaletteIdRoute
   '/palette/new': typeof PaletteNewRoute
+  '/preview/$templateId': typeof PreviewTemplateIdRoute
+  '/preview': typeof PreviewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/preview': typeof PreviewRoute
+  '/preview': typeof PreviewRouteWithChildren
   '/templates': typeof TemplatesRoute
   '/palette/$paletteId': typeof PalettePaletteIdRoute
   '/palette/new': typeof PaletteNewRoute
+  '/preview/$templateId': typeof PreviewTemplateIdRoute
+  '/preview/': typeof PreviewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,8 +88,16 @@ export interface FileRouteTypes {
     | '/templates'
     | '/palette/$paletteId'
     | '/palette/new'
+    | '/preview/$templateId'
+    | '/preview/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/preview' | '/templates' | '/palette/$paletteId' | '/palette/new'
+  to:
+    | '/'
+    | '/templates'
+    | '/palette/$paletteId'
+    | '/palette/new'
+    | '/preview/$templateId'
+    | '/preview'
   id:
     | '__root__'
     | '/'
@@ -80,11 +105,13 @@ export interface FileRouteTypes {
     | '/templates'
     | '/palette/$paletteId'
     | '/palette/new'
+    | '/preview/$templateId'
+    | '/preview/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PreviewRoute: typeof PreviewRoute
+  PreviewRoute: typeof PreviewRouteWithChildren
   TemplatesRoute: typeof TemplatesRoute
   PalettePaletteIdRoute: typeof PalettePaletteIdRoute
   PaletteNewRoute: typeof PaletteNewRoute
@@ -113,6 +140,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/preview/': {
+      id: '/preview/'
+      path: '/'
+      fullPath: '/preview/'
+      preLoaderRoute: typeof PreviewIndexRouteImport
+      parentRoute: typeof PreviewRoute
+    }
+    '/preview/$templateId': {
+      id: '/preview/$templateId'
+      path: '/$templateId'
+      fullPath: '/preview/$templateId'
+      preLoaderRoute: typeof PreviewTemplateIdRouteImport
+      parentRoute: typeof PreviewRoute
+    }
     '/palette/new': {
       id: '/palette/new'
       path: '/palette/new'
@@ -130,9 +171,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface PreviewRouteChildren {
+  PreviewTemplateIdRoute: typeof PreviewTemplateIdRoute
+  PreviewIndexRoute: typeof PreviewIndexRoute
+}
+
+const PreviewRouteChildren: PreviewRouteChildren = {
+  PreviewTemplateIdRoute: PreviewTemplateIdRoute,
+  PreviewIndexRoute: PreviewIndexRoute,
+}
+
+const PreviewRouteWithChildren = PreviewRoute._addFileChildren(PreviewRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PreviewRoute: PreviewRoute,
+  PreviewRoute: PreviewRouteWithChildren,
   TemplatesRoute: TemplatesRoute,
   PalettePaletteIdRoute: PalettePaletteIdRoute,
   PaletteNewRoute: PaletteNewRoute,
