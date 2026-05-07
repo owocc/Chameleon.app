@@ -50,7 +50,7 @@ export function PaletteCard({ palette, onClick }: PaletteCardProps) {
               title={`${PALETTE_ROLE_LABELS[role as PaletteRole]}: ${palette.roles[role]}`}
             >
               <span
-                className="h-8 w-full rounded-lg border"
+                className="block h-8 w-full rounded-lg border"
                 style={{
                   backgroundColor: palette.roles[role],
                   borderColor: 'var(--chm-hairline)',
