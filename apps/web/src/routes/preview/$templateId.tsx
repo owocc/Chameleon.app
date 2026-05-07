@@ -121,7 +121,6 @@ function ImmersiveTemplatePage() {
         onFullscreen={handleBrowserFullscreen}
         onGoBack={goBack}
         onGoToStore={goToStore}
-        autoShow={!showTutorial}
       />
     </div>
   )
@@ -164,7 +163,6 @@ interface ControlsPillProps {
   onFullscreen: () => void
   onGoBack: () => void
   onGoToStore: () => void
-  autoShow?: boolean
 }
 
 /** 计算扇形展开位置 */
@@ -218,19 +216,11 @@ function ControlsPill({
   onFullscreen,
   onGoBack,
   onGoToStore,
-  autoShow = true,
 }: ControlsPillProps) {
-  const [pillVisible, setPillVisible] = useState(autoShow)
+  const [pillVisible, setPillVisible] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pillRef = useRef<HTMLDivElement>(null)
-
-  // 教学关闭后自动显示按钮
-  useEffect(() => {
-    if (autoShow && !pillVisible) {
-      setPillVisible(true)
-    }
-  }, [autoShow])
 
   // ── 长按检测 ──
   const startLongPress = useCallback((e: React.TouchEvent | React.MouseEvent) => {
