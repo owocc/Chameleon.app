@@ -56,8 +56,8 @@ export function MacOSTemplate({ palette, mode = 'light', fill = false }: MacOSTe
   return (
     <div
       className={`mx-auto flex flex-col overflow-hidden ${
-        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[780px] rounded-[16px]'
-      } border shadow-2xl`}
+        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[780px] rounded-[16px] border shadow-2xl'
+      }`}
       style={{
         borderColor: 'var(--mac-border)',
         background: 'var(--mac-app-bg)',

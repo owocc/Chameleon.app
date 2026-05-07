@@ -63,8 +63,8 @@ export function WeChatTemplate({ palette, mode = 'light', fill = false }: WeChat
   return (
     <div
       className={`mx-auto flex flex-col overflow-hidden ${
-        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[375px] rounded-[28px]'
-      } border shadow-xl`}
+        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[375px] rounded-[28px] border shadow-xl'
+      }`}
       style={{
         borderColor: 'var(--wt-border)',
         background: 'var(--wt-app-bg)',

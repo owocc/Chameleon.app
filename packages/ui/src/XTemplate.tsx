@@ -89,8 +89,8 @@ export function XTemplate({ palette, mode = 'light', fill = false }: XTemplatePr
   return (
     <div
       className={`mx-auto flex flex-col overflow-hidden ${
-        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[375px] rounded-[28px]'
-      } border shadow-xl`}
+        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[375px] rounded-[28px] border shadow-xl'
+      }`}
       style={{
         borderColor: 'var(--xt-border)',
         background: 'var(--xt-app-bg)',
