@@ -78,19 +78,21 @@ function ImmersiveTemplatePage() {
   }, [navigate])
 
   return (
-    <div className="fixed inset-0 z-50 flex overflow-hidden bg-[#0d0d0d]">
-      {/* 模板占满整个容器 */}
+    <div className="fixed inset-0 z-50 flex overflow-hidden bg-black">
+      {/* 模板占满整个容器 — 无白边、无边框 */}
       <div className="flex flex-1 items-center justify-center">
         {currentPalette ? (
-          <div className={isMobile ? 'h-full w-full' : ''}>
+          <div className="h-full w-full">
             {templateId === 'wechat' ? (
-              <WeChatTemplate palette={currentPalette} mode={previewMode} fill={isMobile} />
+              <WeChatTemplate palette={currentPalette} mode={previewMode} fill={true} />
             ) : templateId === 'x' ? (
-              <XTemplate palette={currentPalette} mode={previewMode} fill={isMobile} />
+              <XTemplate palette={currentPalette} mode={previewMode} fill={true} />
             ) : templateId === 'macos' ? (
-              <MacOSTemplate palette={currentPalette} mode={previewMode} fill={isMobile} />
+              <MacOSTemplate palette={currentPalette} mode={previewMode} fill={true} />
             ) : (
-              <div className="text-center text-white/30">未知模板</div>
+              <div className="flex h-full w-full items-center justify-center text-white/30">
+                未知模板
+              </div>
             )}
           </div>
         ) : (
