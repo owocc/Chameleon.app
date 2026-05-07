@@ -58,7 +58,7 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 1.5rem;
+  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0.012 67.5);
   --sidebar-primary: oklch(0.265 0.014 67.5);
@@ -160,9 +160,6 @@ input {
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   html {
     @apply font-sans;
   }
