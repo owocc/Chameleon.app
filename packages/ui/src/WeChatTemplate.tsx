@@ -89,11 +89,14 @@ export function WeChatTemplate({ palette, mode = 'light', fill = false }: WeChat
 
       {/* 导航栏 */}
       <div
-        className="flex items-center justify-between px-4 py-3"
-        style={{ backgroundColor: 'var(--wt-nav-bg)' }}
+        className="flex items-center justify-between border-b px-4 py-3"
+        style={{
+          backgroundColor: 'var(--wt-nav-bg)',
+          borderBottomColor: 'var(--wt-border)',
+        }}
       >
         <span className="text-lg font-medium" style={{ color: 'var(--wt-nav-text)' }}>
-          微信
+          简信
         </span>
         <button
           type="button"
@@ -302,7 +305,7 @@ function ProfilePage() {
           Chameleon 用户
         </div>
         <div className="mt-1 text-[13px]" style={{ color: 'var(--wt-secondary-text)' }}>
-          微信号: chameleon_user
+          简信号: chameleon_user
         </div>
       </div>
       <div className="mt-3 space-y-px px-4" style={{ backgroundColor: 'var(--wt-app-bg)' }}>
@@ -338,7 +341,7 @@ function TabBar({
 }) {
   const tabs = [
     {
-      label: '微信',
+      label: '简信',
       page: 'chats' as WeChatPage,
       icon: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5-5 5 5M12 15V5',
     },

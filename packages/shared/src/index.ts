@@ -83,7 +83,7 @@ export interface MobileTemplate {
 export const BUILTIN_MOBILE_TEMPLATES: MobileTemplate[] = [
   {
     id: 'wechat',
-    name: '微信',
+    name: '简信',
     icon: '💬',
     description: '聊天列表页 — 导航栏、搜索、聊天列表、底部栏',
     previewHint: '覆盖导航栏、列表项、头像、未读 badge、底部栏',
@@ -211,6 +211,8 @@ export function mapPaletteToTemplateTokens(
 
   // 模板特有 token
   if (templateId === 'wechat') {
+    // 导航栏使用表面色而非主色，避免大面积刺眼色块
+    tokens.navBg = tokens.surface
     tokens.extra = {
       // 发送气泡 = primary 较亮版本
       bubbleOutgoing: lighten(activeRoles.primary, 30),
