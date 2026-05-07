@@ -1,7 +1,7 @@
 {
   "name": "chameleon",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "description": "Chameleon - 色彩管理工具",
   "scripts": {
     "dev": "vp run --recursive dev",
@@ -13,11 +13,11 @@
     "typecheck": "vp run --recursive typecheck",
     "prepare": "vp config"
   },
+  "devDependencies": {
+    "vite-plus": "catalog:"
+  },
   "engines": {
     "node": ">=18"
   },
-  "packageManager": "pnpm@10.33.4",
-  "devDependencies": {
-    "vite-plus": "catalog:"
-  }
+  "packageManager": "pnpm@10.33.4"
 }

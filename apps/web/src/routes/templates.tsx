@@ -1,64 +1,48 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { BUILTIN_MOBILE_TEMPLATES, BUILTIN_DESKTOP_TEMPLATES } from '@chameleon/shared'
+import { ALL_TEMPLATES, getMobileCompatibleTemplates } from '@chameleon/shared'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 export const Route = createFileRoute('/templates')({
   component: TemplatesPage,
 })
 
-function TemplateCard({
-  template,
-  icon,
-}: {
-  template: { id: string; name: string; description: string; previewHint: string }
-  icon: string
-}) {
-  return (
-    <Link
-      to="/preview"
-      search={{ paletteId: undefined, templateId: template.id as any }}
-      className="group block rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_18px_48px_rgb(12_10_9/0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgb(12_10_9/0.1)]"
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="text-xl font-medium tracking-[0.01em] text-[var(--chm-ink)]">
-            {template.name}
-          </h3>
-          <p className="mt-2 text-sm leading-6 text-[var(--chm-body)]">
-            {template.description}
-          </p>
-          <div className="mt-4 inline-flex items-center gap-1 rounded-full bg-[var(--chm-surface-strong)] px-3 py-1.5 text-xs font-medium text-[var(--chm-ink)] transition-colors group-hover:bg-[var(--chm-primary)] group-hover:text-white">
-            预览色板
-            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-              <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        </div>
-        <div className="shrink-0 rounded-2xl border p-3" style={{ borderColor: 'var(--chm-hairline)', backgroundColor: 'var(--chm-canvas-soft)' }}>
-          <span className="text-2xl">{icon}</span>
-        </div>
-      </div>
-      {/* Token 预览 */}
-      <div className="mt-6 flex gap-1">
-        {[
-          ['navBg', '#292524'],
-          ['surface', '#f8fafc'],
-          ['accent', '#f59e0b'],
-          ['text', '#1a1a2e'],
-          ['appBg', '#ffffff'],
-        ].map(([name, fallback]) => (
-          <div
-            key={name}
-            className="h-4 flex-1 rounded-full first:rounded-l-md last:rounded-r-md"
-            style={{ backgroundColor: `var(--chm-${name === 'navBg' ? 'primary' : name === 'appBg' ? 'canvas' : name === 'text' ? 'ink' : 'muted'}, ${fallback})` }}
-            title={name}
-          />
-        ))}
-      </div>
-    </Link>
-  )
+/** 模板标签的中文映射 */
+const TAG_LABELS: Record<string, string> = {
+  social: '社交',
+  messaging: '即时通讯',
+  feed: '信息流',
+  system: '系统',
+  finder: '文件管理',
+}
+
+function getTagLabel(tag: string): string {
+  return TAG_LABELS[tag] ?? tag
+}
+
+/** 标签颜色映射 */
+const TAG_COLORS: Record<string, string> = {
+  social: '#6366f1',
+  messaging: '#3b82f6',
+  feed: '#10b981',
+  system: '#f59e0b',
+  finder: '#ef4444',
+}
+
+function getTagColor(tag: string): string {
+  return TAG_COLORS[tag] ?? '#6b7280'
 }
 
 function TemplatesPage() {
+  const isMobile = useIsMobile()
+  const availableTemplates = isMobile ? getMobileCompatibleTemplates() : ALL_TEMPLATES
+
+  // 按平台分组
+  const mobileTemplates = availableTemplates.filter((t) => t.platform === 'mobile')
+  const desktopTemplates = availableTemplates.filter((t) => t.platform === 'desktop')
+
+  // 收集所有唯一的 tag
+  const allTags = [...new Set(availableTemplates.flatMap((t) => t.tags))]
+
   return (
     <div className="space-y-10">
       {/* 页面头部 */}
@@ -67,64 +51,182 @@ function TemplatesPage() {
         <div className="pointer-events-none absolute -bottom-24 left-12 h-64 w-64 rounded-full bg-[var(--chm-gradient-lavender)] opacity-45 blur-3xl" />
         <div className="relative">
           <p className="mb-4 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--chm-muted)]">
-            Templates
+            App Store
           </p>
           <h1 className="font-serif text-4xl font-light leading-[1.05] tracking-normal text-[var(--chm-ink)] sm:text-5xl">
-            模板库
+            模板市场
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--chm-body)]">
             选择一个模板，用你的色板进行实时预览，看看配色在真实界面中的效果。
           </p>
+
+          {isMobile && (
+            <p className="mt-4 text-sm leading-6 text-[var(--chm-body)]">
+              检测到移动设备，已自动过滤桌面端模板。
+            </p>
+          )}
+
+          {/* 可用标签一览 */}
+          <div className="mt-6 flex flex-wrap gap-2">
+            {allTags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white"
+                style={{ backgroundColor: getTagColor(tag) }}
+              >
+                {getTagLabel(tag)}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* 移动端模板 */}
-      <div>
-        <div className="mb-6">
-          <h2 className="text-xl font-medium tracking-[0.01em] text-[var(--chm-ink)]">
-            📱 移动端
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
-            移动应用模板，覆盖导航栏、列表、交互控件
-          </p>
-        </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          {BUILTIN_MOBILE_TEMPLATES.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              icon={template.id === 'wechat' ? '💬' : '𝕏'}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* 桌面模板 */}
-      <div>
-        <div className="mb-6">
-          <h2 className="text-xl font-medium tracking-[0.01em] text-[var(--chm-ink)]">
-            🖥️ 桌面系统
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
-            桌面系统模板，覆盖窗口控件、菜单栏、侧栏和文件列表
-          </p>
-        </div>
-        <div className="grid gap-5 md:grid-cols-2">
-          {BUILTIN_DESKTOP_TEMPLATES.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              icon="🍎"
-            />
-          ))}
-          {/* Windows / Ubuntu 占位 */}
-          <div className="rounded-[24px] border border-dashed border-[var(--chm-hairline-strong)] bg-[var(--chm-canvas-soft)] p-6 text-center">
-            <p className="font-serif text-xl font-light text-[var(--chm-muted-soft)]">
-              Windows / Ubuntu 即将推出
+      {mobileTemplates.length > 0 && (
+        <section>
+          <div className="mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📱</span>
+              <h2 className="text-xl font-medium tracking-[0.01em] text-[var(--chm-ink)]">
+                移动应用
+              </h2>
+              <span className="rounded-full bg-[var(--chm-surface-strong)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
+                {mobileTemplates.length} 个模板
+              </span>
+            </div>
+            <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
+              社交、即时通讯、信息流 — 覆盖移动端常见界面模式
             </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {mobileTemplates.map((template) => (
+              <TemplateCard key={template.id} template={template} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 桌面端模板 */}
+      {desktopTemplates.length > 0 && (
+        <section>
+          <div className="mb-6">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🖥️</span>
+              <h2 className="text-xl font-medium tracking-[0.01em] text-[var(--chm-ink)]">
+                桌面系统
+              </h2>
+              <span className="rounded-full bg-[var(--chm-surface-strong)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
+                {desktopTemplates.length} 个模板
+              </span>
+            </div>
+            <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
+              系统界面、窗口管理、文件浏览 — 覆盖桌面端典型场景
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {desktopTemplates.map((template) => (
+              <TemplateCard key={template.id} template={template} />
+            ))}
+            {/* 占位：更多即将推出 */}
+            <PlaceholderCard count={Math.max(0, 3 - desktopTemplates.length)} />
+          </div>
+        </section>
+      )}
+    </div>
+  )
+}
+
+function TemplateCard({
+  template,
+}: {
+  template: {
+    id: string
+    name: string
+    icon: string
+    description: string
+    tags: string[]
+    platform: string
+  }
+}) {
+  return (
+    <Link
+      to="/preview"
+      search={{ paletteId: undefined, templateId: template.id as any }}
+      className="group relative block overflow-hidden rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_18px_48px_rgb(12_10_9/0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgb(12_10_9/0.1)]"
+    >
+      {/* 平台色条 */}
+      <div
+        className="absolute left-0 top-0 h-1 w-full"
+        style={{
+          backgroundColor: template.platform === 'mobile' ? '#6366f1' : '#10b981',
+        }}
+      />
+
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-3">
+            {/* 图标 */}
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--chm-hairline)] bg-[var(--chm-canvas-soft)] text-xl">
+              {template.icon}
+            </div>
+            <div>
+              <h3 className="text-lg font-medium tracking-[0.01em] text-[var(--chm-ink)]">
+                {template.name}
+              </h3>
+              {/* 标签 */}
+              <div className="mt-1 flex flex-wrap gap-1">
+                {template.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full bg-[var(--chm-surface-strong)] px-2 py-0.5 text-[10px] font-medium text-[var(--chm-muted)]"
+                  >
+                    {getTagLabel(tag)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[var(--chm-body)] line-clamp-2">
+            {template.description}
+          </p>
+          <div
+            className="mt-4 inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-medium text-white transition-colors"
+            style={{
+              backgroundColor: 'var(--chm-primary)',
+            }}
+          >
+            预览色板
+            <svg
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
         </div>
       </div>
-    </div>
+    </Link>
+  )
+}
+
+function PlaceholderCard({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <div
+          key={i}
+          className="rounded-[24px] border border-dashed border-[var(--chm-hairline-strong)] bg-[var(--chm-canvas-soft)] p-6 text-center flex flex-col items-center justify-center min-h-[200px]"
+        >
+          <p className="text-4xl opacity-30">+</p>
+          <p className="mt-3 font-serif text-lg font-light text-[var(--chm-muted-soft)]">
+            更多模板即将推出
+          </p>
+        </div>
+      ))}
+    </>
   )
 }
