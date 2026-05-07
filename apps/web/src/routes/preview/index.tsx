@@ -238,8 +238,8 @@ function PreviewPage() {
                         <div
                           className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm"
                           style={{
-                            backgroundColor: t.platform === 'mobile' ? '#eef2ff' : '#ecfdf5',
-                            color: t.platform === 'mobile' ? '#6366f1' : '#10b981',
+                            backgroundColor: 'var(--chm-surface-strong)',
+                            color: 'var(--chm-muted)',
                           }}
                         >
                           {t.icon}
