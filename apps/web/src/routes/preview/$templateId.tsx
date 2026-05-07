@@ -384,7 +384,7 @@ function ControlsPill({
       {/* 圆形按钮 + 扇形菜单 */}
       <div
         ref={pillRef}
-        className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2"
+        className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2"
         style={{ display: pillVisible || menuOpen ? 'block' : 'none' }}
       >
         {/* 扇形展开按钮 */}
