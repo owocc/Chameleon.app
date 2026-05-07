@@ -18,25 +18,15 @@ export const Route = createFileRoute('/preview/$templateId')({
 })
 
 const STORAGE_KEY = 'chameleon:palettes'
-const MOBILE_BREAKPOINT = 768
+const LONG_PRESS_MS = 600
 
 function ImmersiveTemplatePage() {
   const { templateId } = Route.useParams()
   const search = Route.useSearch()
   const navigate = useNavigate()
 
-  const [isMobile, setIsMobile] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [previewMode, setPreviewMode] = useState<PreviewMode>(search.mode ?? 'light')
-
-  useEffect(() => {
-    function check() {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
 
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement)
@@ -108,7 +98,7 @@ function ImmersiveTemplatePage() {
         )}
       </div>
 
-      {/* 悬浮药丸控件 */}
+      {/* 圆形控制按钮 — 长按出现，点击展开扇面 */}
       <ControlsPill
         paletteHasDark={paletteHasDark}
         previewMode={previewMode}
@@ -117,13 +107,12 @@ function ImmersiveTemplatePage() {
         onFullscreen={handleBrowserFullscreen}
         onGoBack={goBack}
         onGoToStore={goToStore}
-        isMobile={isMobile}
       />
     </div>
   )
 }
 
-/* ── 悬浮药丸控件 ── */
+/* ── 扇形展开菜单 ── */
 
 interface ControlsPillProps {
   paletteHasDark: boolean
@@ -133,7 +122,19 @@ interface ControlsPillProps {
   onFullscreen: () => void
   onGoBack: () => void
   onGoToStore: () => void
-  isMobile: boolean
+}
+
+/** 计算扇形展开位置 */
+function getFanPosition(index: number, total: number, radius: number = 110) {
+  // 从左到右，扇形弧度为 140° → 40°
+  const startDeg = 145
+  const endDeg = 35
+  const angleDeg = total > 1 ? startDeg - (index * (startDeg - endDeg)) / (total - 1) : 90
+  const rad = (angleDeg * Math.PI) / 180
+  return {
+    x: Math.sin(rad) * radius,
+    y: -Math.cos(rad) * radius,
+  }
 }
 
 function ControlsPill({
@@ -144,17 +145,32 @@ function ControlsPill({
   onFullscreen,
   onGoBack,
   onGoToStore,
-  isMobile,
 }: ControlsPillProps) {
-  const [open, setOpen] = useState(false)
+  const [pillVisible, setPillVisible] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pillRef = useRef<HTMLDivElement>(null)
 
-  // 点击外部关闭
+  // ── 长按检测 ──
+  const startLongPress = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+    e.preventDefault()
+    clearTimeout(longPressTimer.current)
+    longPressTimer.current = setTimeout(() => {
+      setPillVisible((v) => !v) // toggle pill visibility
+      setMenuOpen(false)
+    }, LONG_PRESS_MS)
+  }, [])
+
+  const cancelLongPress = useCallback(() => {
+    clearTimeout(longPressTimer.current)
+  }, [])
+
+  // 点击外部关闭菜单
   useEffect(() => {
-    if (!open) return
+    if (!menuOpen) return
     const handleClick = (e: MouseEvent) => {
       if (pillRef.current && !pillRef.current.contains(e.target as Node)) {
-        setOpen(false)
+        setMenuOpen(false)
       }
     }
     const timer = setTimeout(() => document.addEventListener('click', handleClick), 0)
@@ -162,13 +178,13 @@ function ControlsPill({
       clearTimeout(timer)
       document.removeEventListener('click', handleClick)
     }
-  }, [open])
+  }, [menuOpen])
 
-  // ESC 关闭
+  // ESC → 退出
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setOpen(false)
+        setMenuOpen(false)
         onGoBack()
       }
     }
@@ -178,14 +194,14 @@ function ControlsPill({
 
   const run = (fn: () => void) => {
     fn()
-    setOpen(false)
+    setMenuOpen(false)
   }
 
   const actions: { icon: React.ReactNode; label: string; onClick: () => void }[] = [
     {
       icon: (
         <svg
-          className="h-4 w-4"
+          className="h-5 w-5"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -194,13 +210,13 @@ function ControlsPill({
           <path d="M19 12H5M12 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       ),
-      label: '返回预览',
+      label: '返回',
       onClick: () => run(onGoBack),
     },
     {
       icon: (
         <svg
-          className="h-4 w-4"
+          className="h-5 w-5"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -212,13 +228,13 @@ function ControlsPill({
           <rect x={14} y={14} width={7} height={7} rx={1} />
         </svg>
       ),
-      label: '模板市场',
+      label: '市场',
       onClick: () => run(onGoToStore),
     },
     {
       icon: isFullscreen ? (
         <svg
-          className="h-4 w-4"
+          className="h-5 w-5"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -232,7 +248,7 @@ function ControlsPill({
         </svg>
       ) : (
         <svg
-          className="h-4 w-4"
+          className="h-5 w-5"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -245,65 +261,113 @@ function ControlsPill({
           />
         </svg>
       ),
-      label: isFullscreen ? '退出全屏' : '浏览器全屏',
+      label: '全屏',
       onClick: () => run(onFullscreen),
     },
   ]
 
-  // 暗色模式切换按钮（只在色板支持时显示）
   if (paletteHasDark) {
     actions.push({
-      icon: <span className="text-base leading-none">{previewMode === 'dark' ? '☀️' : '🌙'}</span>,
-      label: previewMode === 'dark' ? '亮色模式' : '暗色模式',
+      icon: <span className="text-lg leading-none">{previewMode === 'dark' ? '☀️' : '🌙'}</span>,
+      label: previewMode === 'dark' ? '亮色' : '暗色',
       onClick: () => run(onToggleMode),
     })
   }
 
+  const actionCount = actions.length
+
   return (
-    <div
-      ref={pillRef}
-      className={`fixed z-50 ${isMobile ? 'bottom-4 right-4' : 'bottom-6 right-6'}`}
-    >
-      {/* 弹出菜单 */}
-      {open && (
-        <div className="absolute bottom-full right-0 mb-2 min-w-[160px] overflow-hidden rounded-2xl bg-white/10 backdrop-blur-2xl">
-          <div className="p-1.5">
-            {actions.map((action, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={action.onClick}
-                className="flex w-full items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                {action.icon}
-                <span>{action.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+    <>
+      {/* 模糊背景遮罩 — 菜单打开时 */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}
+          onClick={() => setMenuOpen(false)}
+        />
       )}
 
-      {/* 药丸主按钮 */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-2.5 text-white/70 backdrop-blur-2xl transition-all hover:bg-white/20 hover:text-white"
-        style={open ? { backgroundColor: 'rgba(255,255,255,0.18)' } : undefined}
+      {/* 长按区域 — 覆盖全屏，只在 pill 隐藏时激活 */}
+      {!pillVisible && !menuOpen && (
+        <div
+          className="fixed inset-0 z-30"
+          onTouchStart={startLongPress}
+          onTouchEnd={cancelLongPress}
+          onTouchMove={cancelLongPress}
+          onMouseDown={startLongPress}
+          onMouseUp={cancelLongPress}
+          onMouseLeave={cancelLongPress}
+        />
+      )}
+
+      {/* 圆形按钮 + 扇形菜单 */}
+      <div
+        ref={pillRef}
+        className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2"
+        style={{ display: pillVisible || menuOpen ? 'block' : 'none' }}
       >
-        <svg
-          className="h-4 w-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth={2}
+        {/* 扇形展开按钮 */}
+        {actions.map((action, i) => {
+          const pos = getFanPosition(i, actionCount, 108)
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={action.onClick}
+              className="absolute left-1/2 top-1/2 flex flex-col items-center gap-1"
+              style={{
+                transform: menuOpen
+                  ? `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`
+                  : 'translate(-50%, -50%)',
+                opacity: menuOpen ? 1 : 0,
+                pointerEvents: menuOpen ? 'auto' : 'none',
+                transition: `all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.05}s`,
+              }}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur-2xl transition-colors hover:bg-white/25">
+                {action.icon}
+              </div>
+              <span
+                className="text-[11px] font-medium tracking-wide text-white/70"
+                style={{
+                  opacity: menuOpen ? 1 : 0,
+                  transition: `opacity 0.25s ease ${i * 0.05 + 0.15}s`,
+                }}
+              >
+                {action.label}
+              </span>
+            </button>
+          )
+        })}
+
+        {/* 主圆形按钮 */}
+        <button
+          type="button"
+          onClick={() => setMenuOpen((v) => !v)}
+          onTouchStart={(e) => {
+            // If pill already visible and we touch it, cancel the outer long-press
+            e.stopPropagation()
+          }}
+          className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-2xl transition-all hover:bg-white/30 active:scale-90"
+          style={{
+            transform: menuOpen ? 'scale(0.85)' : 'scale(1)',
+            transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          }}
         >
-          <circle cx={12} cy={5} r={1} />
-          <circle cx={12} cy={12} r={1} />
-          <circle cx={12} cy={19} r={1} />
-        </svg>
-        {!isMobile && <span className="text-xs font-medium">菜单</span>}
-      </button>
-    </div>
+          <svg
+            className="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <circle cx={12} cy={5} r={1.5} fill="currentColor" stroke="none" />
+            <circle cx={12} cy={12} r={1.5} fill="currentColor" stroke="none" />
+            <circle cx={12} cy={19} r={1.5} fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </>
   )
 }
 

@@ -167,7 +167,13 @@ function TemplateCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
             {/* 图标 */}
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--chm-hairline)] bg-[var(--chm-canvas-soft)] text-xl">
+            <div
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-sm"
+              style={{
+                backgroundColor: template.platform === 'mobile' ? '#eef2ff' : '#ecfdf5',
+                color: template.platform === 'mobile' ? '#6366f1' : '#10b981',
+              }}
+            >
               {template.icon}
             </div>
             <div>

@@ -235,7 +235,13 @@ function PreviewPage() {
                             ✓
                           </span>
                         )}
-                        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--chm-hairline)] bg-[var(--chm-canvas-soft)] text-xl">
+                        <div
+                          className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm"
+                          style={{
+                            backgroundColor: t.platform === 'mobile' ? '#eef2ff' : '#ecfdf5',
+                            color: t.platform === 'mobile' ? '#6366f1' : '#10b981',
+                          }}
+                        >
                           {t.icon}
                         </div>
                         <p className="text-sm font-medium text-[var(--chm-ink)]">{t.name}</p>
