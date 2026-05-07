@@ -5,6 +5,8 @@ import { mapPaletteToTemplateTokens, getRolesForMode } from '@chameleon/shared'
 interface WeChatTemplateProps {
   palette: Palette
   mode?: 'light' | 'dark'
+  /** 填满容器（用于移动端沉浸模式） */
+  fill?: boolean
 }
 
 type WeChatPage = 'chats' | 'contacts' | 'discover' | 'profile'
@@ -53,14 +55,16 @@ function buildTokenCSS(tokens: TemplateTokenMap): React.CSSProperties {
   } as React.CSSProperties
 }
 
-export function WeChatTemplate({ palette, mode = 'light' }: WeChatTemplateProps) {
+export function WeChatTemplate({ palette, mode = 'light', fill = false }: WeChatTemplateProps) {
   const roles = getRolesForMode(palette.roles, mode, palette.darkRoles)
   const tokens = mapPaletteToTemplateTokens(roles, 'wechat')
   const [page, setPage] = useState<WeChatPage>('chats')
 
   return (
     <div
-      className="mx-auto flex h-[700px] w-[375px] flex-col overflow-hidden rounded-[28px] border shadow-xl"
+      className={`mx-auto flex flex-col overflow-hidden ${
+        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[375px] rounded-[28px]'
+      } border shadow-xl`}
       style={{
         borderColor: 'var(--wt-border)',
         background: 'var(--wt-app-bg)',

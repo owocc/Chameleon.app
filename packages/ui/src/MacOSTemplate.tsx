@@ -4,6 +4,8 @@ import { mapPaletteToTemplateTokens, type Palette, getRolesForMode } from '@cham
 interface MacOSTemplateProps {
   palette: Palette
   mode?: 'light' | 'dark'
+  /** 填满容器（用于沉浸模式） */
+  fill?: boolean
 }
 
 const SIDEBAR_ITEMS = [
@@ -47,13 +49,15 @@ function buildTokenCSS(tokens: TemplateTokenMap): React.CSSProperties {
   } as React.CSSProperties
 }
 
-export function MacOSTemplate({ palette, mode = 'light' }: MacOSTemplateProps) {
+export function MacOSTemplate({ palette, mode = 'light', fill = false }: MacOSTemplateProps) {
   const roles = getRolesForMode(palette.roles, mode, palette.darkRoles)
   const tokens = mapPaletteToTemplateTokens(roles, 'macos')
 
   return (
     <div
-      className="mx-auto flex h-[700px] w-[780px] flex-col overflow-hidden rounded-[16px] border shadow-2xl"
+      className={`mx-auto flex flex-col overflow-hidden ${
+        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[780px] rounded-[16px]'
+      } border shadow-2xl`}
       style={{
         borderColor: 'var(--mac-border)',
         background: 'var(--mac-app-bg)',

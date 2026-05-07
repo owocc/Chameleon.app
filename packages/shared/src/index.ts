@@ -60,6 +60,11 @@ export function hasDarkMode(palette: Palette): boolean {
   return palette.darkRoles != null
 }
 
+// ── 模板平台 / 标签 ──
+
+export type TemplatePlatform = 'mobile' | 'desktop'
+export type TemplateTag = string
+
 // ── 移动模板系统 ──
 
 export type MobileTemplateId = 'wechat' | 'x'
@@ -67,22 +72,32 @@ export type MobileTemplateId = 'wechat' | 'x'
 export interface MobileTemplate {
   id: MobileTemplateId
   name: string
+  /** 模板图标（emoji） */
+  icon: string
   description: string
   previewHint: string
+  platform: TemplatePlatform
+  tags: TemplateTag[]
 }
 
 export const BUILTIN_MOBILE_TEMPLATES: MobileTemplate[] = [
   {
     id: 'wechat',
     name: '微信',
+    icon: '💬',
     description: '聊天列表页 — 导航栏、搜索、聊天列表、底部栏',
     previewHint: '覆盖导航栏、列表项、头像、未读 badge、底部栏',
+    platform: 'mobile',
+    tags: ['social', 'messaging'],
   },
   {
     id: 'x',
     name: 'X (Twitter)',
+    icon: '𝕏',
     description: '时间线 — 推文卡片、交互按钮、分割线',
     previewHint: '覆盖卡片文本密度、链接色、按钮态和分割线',
+    platform: 'mobile',
+    tags: ['social', 'feed'],
   },
 ]
 
@@ -93,18 +108,44 @@ export type DesktopTemplateId = 'macos'
 export interface DesktopTemplate {
   id: DesktopTemplateId
   name: string
+  /** 模板图标（emoji） */
+  icon: string
   description: string
   previewHint: string
+  platform: TemplatePlatform
+  tags: TemplateTag[]
 }
 
 export const BUILTIN_DESKTOP_TEMPLATES: DesktopTemplate[] = [
   {
     id: 'macos',
     name: 'macOS',
+    icon: '🖥️',
     description: '桌面窗口 — 标题栏、菜单栏、侧栏、文件列表',
     previewHint: '覆盖窗口控件、菜单栏、侧栏选区、列表高亮和按钮态',
+    platform: 'desktop',
+    tags: ['system', 'finder'],
   },
 ]
+
+// ── 模板集合工具 ──
+
+export type TemplateInfo = MobileTemplate | DesktopTemplate
+
+export const ALL_TEMPLATES: TemplateInfo[] = [
+  ...BUILTIN_MOBILE_TEMPLATES,
+  ...BUILTIN_DESKTOP_TEMPLATES,
+]
+
+/** 按平台过滤模板 */
+export function getTemplatesByPlatform(platform: TemplatePlatform): TemplateInfo[] {
+  return ALL_TEMPLATES.filter((t) => t.platform === platform)
+}
+
+/** 过滤出移动端可用的模板（桌面端过滤掉） */
+export function getMobileCompatibleTemplates(): TemplateInfo[] {
+  return ALL_TEMPLATES.filter((t) => t.platform === 'mobile')
+}
 
 // ── 模板 Token 映射 ──
 

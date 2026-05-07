@@ -5,6 +5,8 @@ import { mapPaletteToTemplateTokens, getRolesForMode } from '@chameleon/shared'
 interface XTemplateProps {
   palette: Palette
   mode?: 'light' | 'dark'
+  /** 填满容器（用于移动端沉浸模式） */
+  fill?: boolean
 }
 
 type XPage = 'home' | 'search' | 'notifications' | 'messages'
@@ -79,14 +81,16 @@ function formatCount(n: number | string): string {
   return String(n)
 }
 
-export function XTemplate({ palette, mode = 'light' }: XTemplateProps) {
+export function XTemplate({ palette, mode = 'light', fill = false }: XTemplateProps) {
   const roles = getRolesForMode(palette.roles, mode, palette.darkRoles)
   const tokens = mapPaletteToTemplateTokens(roles, 'x')
   const [page, setPage] = useState<XPage>('home')
 
   return (
     <div
-      className="mx-auto flex h-[700px] w-[375px] flex-col overflow-hidden rounded-[28px] border shadow-xl"
+      className={`mx-auto flex flex-col overflow-hidden ${
+        fill ? 'h-full w-full rounded-none' : 'h-[700px] w-[375px] rounded-[28px]'
+      } border shadow-xl`}
       style={{
         borderColor: 'var(--xt-border)',
         background: 'var(--xt-app-bg)',
