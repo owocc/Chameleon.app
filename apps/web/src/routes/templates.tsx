@@ -19,19 +19,6 @@ function getTagLabel(tag: string): string {
   return TAG_LABELS[tag] ?? tag
 }
 
-/** 标签颜色映射 */
-const TAG_COLORS: Record<string, string> = {
-  social: '#6366f1',
-  messaging: '#3b82f6',
-  feed: '#10b981',
-  system: '#f59e0b',
-  finder: '#ef4444',
-}
-
-function getTagColor(tag: string): string {
-  return TAG_COLORS[tag] ?? '#6b7280'
-}
-
 function TemplatesPage() {
   const isMobile = useIsMobile()
   const availableTemplates = isMobile ? getMobileCompatibleTemplates() : ALL_TEMPLATES
@@ -46,7 +33,7 @@ function TemplatesPage() {
   return (
     <div className="space-y-10">
       {/* 页面头部 */}
-      <section className="relative overflow-hidden rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_22px_70px_rgb(12_10_9/0.07)] sm:p-10">
+      <section className="relative overflow-hidden rounded-[16px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_22px_70px_rgb(12_10_9/0.07)] sm:p-10">
         <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[var(--chm-gradient-sky)] opacity-45 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-12 h-64 w-64 rounded-full bg-[var(--chm-gradient-lavender)] opacity-45 blur-3xl" />
         <div className="relative">
@@ -71,8 +58,8 @@ function TemplatesPage() {
             {allTags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-white"
-                style={{ backgroundColor: getTagColor(tag) }}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-[var(--chm-muted)]"
+                style={{ backgroundColor: 'var(--chm-surface-strong)' }}
               >
                 {getTagLabel(tag)}
               </span>
@@ -153,16 +140,8 @@ function TemplateCard({
       to="/preview/$templateId"
       params={{ templateId: template.id }}
       search={{ paletteId: undefined }}
-      className="group relative block overflow-hidden rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_18px_48px_rgb(12_10_9/0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgb(12_10_9/0.1)]"
+      className="group relative block overflow-hidden rounded-[16px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_4px_16px_rgb(12_10_9/0.04)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgb(12_10_9/0.08)]"
     >
-      {/* 平台色条 */}
-      <div
-        className="absolute left-0 top-0 h-1 w-full"
-        style={{
-          backgroundColor: template.platform === 'mobile' ? '#6366f1' : '#10b981',
-        }}
-      />
-
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3">
@@ -170,8 +149,8 @@ function TemplateCard({
             <div
               className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-sm"
               style={{
-                backgroundColor: template.platform === 'mobile' ? '#eef2ff' : '#ecfdf5',
-                color: template.platform === 'mobile' ? '#6366f1' : '#10b981',
+                backgroundColor: 'var(--chm-surface-strong)',
+                color: 'var(--chm-muted)',
               }}
             >
               {template.icon}
@@ -226,7 +205,7 @@ function PlaceholderCard({ count }: { count: number }) {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-[24px] border border-dashed border-[var(--chm-hairline-strong)] bg-[var(--chm-canvas-soft)] p-6 text-center flex flex-col items-center justify-center min-h-[200px]"
+          className="rounded-[16px] border border-dashed border-[var(--chm-hairline-strong)] bg-[var(--chm-canvas-soft)] p-6 text-center flex flex-col items-center justify-center min-h-[200px]"
         >
           <p className="text-4xl opacity-30">+</p>
           <p className="mt-3 font-serif text-lg font-light text-[var(--chm-muted-soft)]">
