@@ -1,20 +1,27 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { z } from 'zod'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import type { Palette, MobileTemplateId, DesktopTemplateId } from '@chameleon/shared'
 import {
   BUILTIN_MOBILE_TEMPLATES,
   BUILTIN_DESKTOP_TEMPLATES,
+  hasDarkMode,
+  PALETTE_ROLES,
+  PALETTE_ROLE_LABELS,
 } from '@chameleon/shared'
 import { WeChatTemplate, XTemplate, MacOSTemplate } from '@chameleon/ui'
 
 type TemplateId = MobileTemplateId | DesktopTemplateId
+
+type PreviewMode = 'light' | 'dark'
 
 const ALL_TEMPLATES = [...BUILTIN_MOBILE_TEMPLATES, ...BUILTIN_DESKTOP_TEMPLATES]
 
 const previewSearchSchema = z.object({
   paletteId: z.string().optional(),
   templateId: z.string().optional(),
+  mode: z.enum(['light', 'dark']).optional(),
+  fullscreen: z.string().optional(),
 })
 
 export const Route = createFileRoute('/preview')({
@@ -27,11 +34,21 @@ const STORAGE_KEY = 'chameleon:palettes'
 function PreviewPage() {
   const navigate = useNavigate()
   const search = Route.useSearch()
+  const containerRef = useRef<HTMLDivElement>(null)
   const [palettes, setPalettes] = useState<Palette[]>([])
   const [selectedPaletteId, setSelectedPaletteId] = useState(search.paletteId ?? '')
   const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>(
     (search.templateId as TemplateId) ?? 'wechat',
   )
+  const [previewMode, setPreviewMode] = useState<PreviewMode>(search.mode ?? 'light')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // 全屏状态监听
+  useEffect(() => {
+    const handler = () => setIsFullscreen(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', handler)
+    return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
 
   useEffect(() => {
     const stored = readStoredPalettes()
@@ -46,17 +63,29 @@ function PreviewPage() {
   useEffect(() => {
     void navigate({
       to: '/preview',
-      search: { paletteId: selectedPaletteId || undefined, templateId: selectedTemplateId },
+      search: {
+        paletteId: selectedPaletteId || undefined,
+        templateId: selectedTemplateId,
+        mode: previewMode !== 'light' ? previewMode : undefined,
+      },
       replace: true,
     })
-  }, [selectedPaletteId, selectedTemplateId, navigate])
+  }, [selectedPaletteId, selectedTemplateId, previewMode, navigate])
 
   const currentPalette = palettes.find((p) => p.id === selectedPaletteId)
   const currentTemplate = ALL_TEMPLATES.find((t) => t.id === selectedTemplateId)
-  const isDesktop = selectedTemplateId === 'macos'
+  const paletteHasDark = currentPalette ? hasDarkMode(currentPalette) : false
+
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      void containerRef.current?.requestFullscreen()
+    } else {
+      void document.exitFullscreen()
+    }
+  }, [])
 
   return (
-    <div className="space-y-8">
+    <div ref={containerRef} className="space-y-8">
       {/* 页面头部 */}
       <section className="relative overflow-hidden rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-6 shadow-[0_22px_70px_rgb(12_10_9/0.07)] sm:p-10">
         <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[var(--chm-gradient-rose)] opacity-45 blur-3xl" />
@@ -147,6 +176,100 @@ function PreviewPage() {
             })}
           </div>
         </div>
+
+        {/* 亮暗 + 全屏控制 */}
+        {currentPalette && (
+          <div className="flex items-center gap-2">
+            {/* 亮暗切换 */}
+            <button
+              type="button"
+              onClick={() => setPreviewMode((m) => (m === 'light' ? 'dark' : 'light'))}
+              disabled={!paletteHasDark}
+              className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-40"
+              style={{
+                borderColor: previewMode === 'dark' ? 'var(--chm-primary)' : 'var(--chm-hairline)',
+                backgroundColor:
+                  previewMode === 'dark' ? 'var(--chm-primary)' : 'var(--chm-surface-card)',
+                color: previewMode === 'dark' ? 'var(--chm-on-primary)' : 'var(--chm-ink)',
+              }}
+              title={!paletteHasDark ? '该色板未设置暗色模式' : ''}
+            >
+              {previewMode === 'dark' ? (
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <circle cx={12} cy={12} r={4} strokeLinecap="round" strokeLinejoin="round" />
+                  <path
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+              <span>{previewMode === 'dark' ? '暗色' : '亮色'}</span>
+            </button>
+
+            {/* 全屏按钮 */}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all"
+              style={{
+                borderColor: 'var(--chm-hairline)',
+                backgroundColor: 'var(--chm-surface-card)',
+                color: 'var(--chm-ink)',
+              }}
+            >
+              {isFullscreen ? (
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.5}
+                >
+                  <path
+                    d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+              <span>{isFullscreen ? '退出全屏' : '全屏'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 预览区 */}
@@ -158,49 +281,36 @@ function PreviewPage() {
               {currentTemplate?.name ?? '未知模板'}
             </div>
             {selectedTemplateId === 'wechat' ? (
-              <WeChatTemplate palette={currentPalette} />
+              <WeChatTemplate palette={currentPalette} mode={previewMode} />
             ) : selectedTemplateId === 'x' ? (
-              <XTemplate palette={currentPalette} />
+              <XTemplate palette={currentPalette} mode={previewMode} />
             ) : (
-              <MacOSTemplate palette={currentPalette} />
+              <MacOSTemplate palette={currentPalette} mode={previewMode} />
             )}
           </div>
 
           {/* 色板信息侧栏 */}
-          <div className={`w-full shrink-0 ${isDesktop ? 'max-w-xs' : 'max-w-xs'}`}>
+          <div className="w-full shrink-0 max-w-xs">
             <div className="rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-5 shadow-[0_18px_48px_rgb(12_10_9/0.05)]">
               <h3 className="text-lg font-medium tracking-[0.01em] text-[var(--chm-ink)]">
                 {currentPalette.name}
               </h3>
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
-                色板角色
+
+              {/* 亮色模式色板 */}
+              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
+                亮色模式
               </p>
-              <div className="mt-3 space-y-2">
-                {([
-                  ['primary', '主色'],
-                  ['surface', '表面色'],
-                  ['background', '背景色'],
-                  ['text', '文字色'],
-                  ['accent', '强调色'],
-                ] as const).map(([role, label]) => (
-                  <div
-                    key={role}
-                    className="flex items-center justify-between rounded-xl px-3 py-2"
-                    style={{ backgroundColor: 'var(--chm-canvas-soft)' }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="inline-block h-5 w-5 rounded-md border"
-                        style={{ backgroundColor: currentPalette.roles[role], borderColor: 'var(--chm-hairline)' }}
-                      />
-                      <span className="text-sm text-[var(--chm-ink)]">{label}</span>
-                    </div>
-                    <span className="font-mono text-xs uppercase text-[var(--chm-muted-soft)]">
-                      {currentPalette.roles[role]}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <PaletteRolesSection roles={currentPalette.roles} />
+
+              {/* 暗色模式色板（仅存在时显示） */}
+              {currentPalette.darkRoles && (
+                <>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
+                    暗色模式
+                  </p>
+                  <PaletteRolesSection roles={currentPalette.darkRoles} />
+                </>
+              )}
 
               <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--chm-muted)]">
                 模板说明
@@ -222,6 +332,31 @@ function PreviewPage() {
           </p>
         </div>
       )}
+    </div>
+  )
+}
+
+function PaletteRolesSection({ roles }: { roles: Palette['roles'] }) {
+  return (
+    <div className="mt-2 space-y-1.5">
+      {PALETTE_ROLES.map((role) => (
+        <div
+          key={role}
+          className="flex items-center justify-between rounded-xl px-3 py-1.5"
+          style={{ backgroundColor: 'var(--chm-canvas-soft)' }}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block h-4 w-4 rounded-md border"
+              style={{ backgroundColor: roles[role], borderColor: 'var(--chm-hairline)' }}
+            />
+            <span className="text-sm text-[var(--chm-ink)]">{PALETTE_ROLE_LABELS[role]}</span>
+          </div>
+          <span className="font-mono text-xs uppercase text-[var(--chm-muted-soft)]">
+            {roles[role]}
+          </span>
+        </div>
+      ))}
     </div>
   )
 }

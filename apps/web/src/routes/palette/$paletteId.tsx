@@ -5,7 +5,9 @@ import {
   analogousColors,
   complementaryColor,
   createEmptyPalette,
+  hasDarkMode,
   monochromaticColors,
+  PALETTE_DARK_DEFAULT_COLORS,
   PALETTE_ROLE_LABELS,
   PALETTE_ROLES,
   splitComplementaryColors,
@@ -35,7 +37,15 @@ function EditPalettePage() {
     return found ?? createEmptyPalette()
   })
   const [baseColor, setBaseColor] = useState<HexColor>(palette.roles.primary)
+  const [darkBaseColor, setDarkBaseColor] = useState<HexColor>(
+    palette.darkRoles?.primary ?? PALETTE_DARK_DEFAULT_COLORS.primary,
+  )
   const [selectedColor, setSelectedColor] = useState<HexColor | null>(null)
+  const [editingMode, setEditingMode] = useState<'light' | 'dark'>('light')
+  const [darkEnabled, setDarkEnabled] = useState(hasDarkMode(palette))
+
+  // current base color depends on editing mode
+  const currentBaseColor = editingMode === 'light' ? baseColor : darkBaseColor
 
   const candidateGroups = useMemo<CandidateGroup[]>(
     () => [
@@ -43,34 +53,34 @@ function EditPalettePage() {
         id: 'complementary',
         title: '补色',
         description: '色环对侧的强对比，适合强调动作。',
-        colors: [complementaryColor(baseColor)],
+        colors: [complementaryColor(currentBaseColor)],
       },
       {
         id: 'split-complementary',
         title: '分裂补色',
         description: '保留对比，但比补色更柔和。',
-        colors: splitComplementaryColors(baseColor),
+        colors: splitComplementaryColors(currentBaseColor),
       },
       {
         id: 'analogous',
         title: '类似色',
         description: '相邻色相，适合做自然过渡。',
-        colors: analogousColors(baseColor),
+        colors: analogousColors(currentBaseColor),
       },
       {
         id: 'triadic',
         title: '三元色',
         description: '色环均分，适合更活跃的组合。',
-        colors: triadicColors(baseColor),
+        colors: triadicColors(currentBaseColor),
       },
       {
         id: 'monochromatic',
         title: '单色阶',
         description: '同色相明度阶梯，适合背景和表面。',
-        colors: monochromaticColors(baseColor, 5),
+        colors: monochromaticColors(currentBaseColor, 5),
       },
     ],
-    [baseColor],
+    [currentBaseColor],
   )
 
   function updatePaletteName(name: string) {
@@ -93,14 +103,55 @@ function EditPalettePage() {
   }
 
   function updateBaseColor(color: HexColor) {
-    setBaseColor(color)
-    updateRole('primary', color)
+    if (editingMode === 'light') {
+      setBaseColor(color)
+    } else {
+      setDarkBaseColor(color)
+    }
+    if (editingMode === 'light') {
+      updateRole('primary', color)
+    } else {
+      updateDarkRole('primary', color)
+    }
   }
 
   function applyCandidate(role: PaletteRole) {
     if (!selectedColor) return
-    updateRole(role, selectedColor)
+    if (editingMode === 'dark') {
+      updateDarkRole(role, selectedColor)
+    } else {
+      updateRole(role, selectedColor)
+    }
     setSelectedColor(null)
+  }
+
+  function updateDarkRole(role: PaletteRole, color: HexColor) {
+    setPalette((current) => ({
+      ...current,
+      darkRoles: {
+        ...(current.darkRoles ?? { ...PALETTE_DARK_DEFAULT_COLORS }),
+        [role]: color,
+      },
+      updatedAt: new Date().toISOString(),
+    }))
+  }
+
+  function initDarkRoles() {
+    setPalette((current) => ({
+      ...current,
+      darkRoles: { ...PALETTE_DARK_DEFAULT_COLORS },
+      updatedAt: new Date().toISOString(),
+    }))
+    setDarkEnabled(true)
+  }
+
+  function removeDarkRoles() {
+    setPalette((current) => ({
+      ...current,
+      darkRoles: undefined,
+      updatedAt: new Date().toISOString(),
+    }))
+    setDarkEnabled(false)
   }
 
   function savePalette() {
@@ -142,13 +193,24 @@ function EditPalettePage() {
   return (
     <div className="mx-auto max-w-5xl pb-28">
       <div className="mb-8 flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => navigate({ to: '/' })}
-          className="min-h-10 rounded-full border border-[var(--chm-hairline)] px-4 text-sm font-medium text-[var(--chm-ink)] active:bg-[var(--chm-surface-strong)]"
-        >
-          返回
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate({ to: '/' })}
+            className="min-h-10 rounded-full border border-[var(--chm-hairline)] px-4 text-sm font-medium text-[var(--chm-ink)] active:bg-[var(--chm-surface-strong)]"
+          >
+            返回
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              navigate({ to: '/preview', search: { paletteId, templateId: 'wechat' } })
+            }
+            className="min-h-10 rounded-full border border-[var(--chm-hairline)] px-4 text-sm font-medium text-[var(--chm-ink)] active:bg-[var(--chm-surface-strong)]"
+          >
+            预览
+          </button>
+        </div>
         <button
           type="button"
           onClick={savePalette}
@@ -191,7 +253,68 @@ function EditPalettePage() {
             </div>
           ))}
         </div>
+        {/* 暗色色条（如果已开启） */}
+        {darkEnabled && palette.darkRoles && (
+          <div className="grid grid-cols-5 border-t border-[var(--chm-hairline)]">
+            {PALETTE_ROLES.map((role) => (
+              <div
+                key={role}
+                className="min-h-16 p-2"
+                style={{ backgroundColor: palette.darkRoles![role] }}
+              >
+                <span className="rounded-full bg-black/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white shadow-sm">
+                  dark
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
+
+      {/* 亮/暗模式切换 Tab */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex gap-1 rounded-full border border-[var(--chm-hairline)] bg-[var(--chm-surface-strong)] p-1">
+          <button
+            type="button"
+            onClick={() => setEditingMode('light')}
+            className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+              editingMode === 'light'
+                ? 'bg-white text-[var(--chm-ink)] shadow-sm'
+                : 'text-[var(--chm-muted)] hover:text-[var(--chm-ink)]'
+            }`}
+          >
+            ☀️ 亮色
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditingMode('dark')}
+            className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
+              editingMode === 'dark'
+                ? 'bg-white text-[var(--chm-ink)] shadow-sm'
+                : 'text-[var(--chm-muted)] hover:text-[var(--chm-ink)]'
+            }`}
+          >
+            🌙 暗色
+          </button>
+        </div>
+        {!darkEnabled ? (
+          <button
+            type="button"
+            onClick={initDarkRoles}
+            className="rounded-full border border-dashed border-[var(--chm-hairline-strong)] px-4 py-2 text-sm text-[var(--chm-muted)] hover:text-[var(--chm-ink)]"
+          >
+            + 添加暗色模式
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={removeDarkRoles}
+            className="rounded-full border border-[var(--chm-hairline)] px-4 py-2 text-sm text-[var(--chm-muted)] hover:text-red-500"
+          >
+            移除暗色
+          </button>
+        )}
+      </div>
 
       {/* 主编辑器 */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -212,13 +335,13 @@ function EditPalettePage() {
             <div className="flex items-center gap-4">
               <input
                 type="color"
-                value={baseColor}
+                value={currentBaseColor}
                 onChange={(event) => updateBaseColor(event.target.value as HexColor)}
                 className="h-16 w-16 rounded-2xl border border-[var(--chm-hairline)] bg-transparent p-1"
                 aria-label="选择主色"
               />
               <input
-                value={baseColor}
+                value={currentBaseColor}
                 onChange={(event) => {
                   const next = event.target.value
                   if (isHexColor(next)) updateBaseColor(next)
@@ -277,19 +400,32 @@ function EditPalettePage() {
         {/* 右侧：色板角色 */}
         <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-[24px] border border-[var(--chm-hairline)] bg-[var(--chm-surface-card)] p-5 shadow-[0_18px_48px_rgb(12_10_9/0.05)]">
-            <h2 className="text-xl font-medium tracking-[0.01em]">色板角色</h2>
+            <h2 className="text-xl font-medium tracking-[0.01em]">
+              {editingMode === 'light' ? '☀️ 亮色角色' : '🌙 暗色角色'}
+            </h2>
             <p className="mt-1 text-sm leading-6 text-[var(--chm-body)]">
-              每个角色都可以手动微调，也可以从候选色一键填入。
+              {editingMode === 'light'
+                ? '每个角色都可以手动微调，也可以从候选色一键填入。'
+                : '配置暗色模式下的颜色值，留空则跟随亮色。'}
             </p>
             <div className="mt-5 space-y-3">
-              {PALETTE_ROLES.map((role) => (
-                <RoleColorField
-                  key={role}
-                  role={role}
-                  value={palette.roles[role]}
-                  onChange={(color) => updateRole(role, color)}
-                />
-              ))}
+              {editingMode === 'light'
+                ? PALETTE_ROLES.map((role) => (
+                    <RoleColorField
+                      key={role}
+                      role={role}
+                      value={palette.roles[role]}
+                      onChange={(color) => updateRole(role, color)}
+                    />
+                  ))
+                : PALETTE_ROLES.map((role) => (
+                    <RoleColorField
+                      key={role}
+                      role={role}
+                      value={palette.darkRoles?.[role] ?? PALETTE_DARK_DEFAULT_COLORS[role]}
+                      onChange={(color) => updateDarkRole(role, color)}
+                    />
+                  ))}
             </div>
           </div>
         </aside>

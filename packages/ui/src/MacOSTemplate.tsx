@@ -1,8 +1,9 @@
 import type { TemplateTokenMap } from '@chameleon/shared'
-import { mapPaletteToTemplateTokens, type Palette } from '@chameleon/shared'
+import { mapPaletteToTemplateTokens, type Palette, getRolesForMode } from '@chameleon/shared'
 
 interface MacOSTemplateProps {
   palette: Palette
+  mode?: 'light' | 'dark'
 }
 
 const SIDEBAR_ITEMS = [
@@ -46,8 +47,9 @@ function buildTokenCSS(tokens: TemplateTokenMap): React.CSSProperties {
   } as React.CSSProperties
 }
 
-export function MacOSTemplate({ palette }: MacOSTemplateProps) {
-  const tokens = mapPaletteToTemplateTokens(palette.roles, 'macos')
+export function MacOSTemplate({ palette, mode = 'light' }: MacOSTemplateProps) {
+  const roles = getRolesForMode(palette.roles, mode, palette.darkRoles)
+  const tokens = mapPaletteToTemplateTokens(roles, 'macos')
 
   return (
     <div
@@ -65,9 +67,18 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
       >
         {/* 三色交通灯 */}
         <div className="flex items-center gap-[6px]">
-          <span className="block h-3 w-3 rounded-full" style={{ backgroundColor: 'var(--tl-close)' }} />
-          <span className="block h-3 w-3 rounded-full" style={{ backgroundColor: 'var(--tl-minimize)' }} />
-          <span className="block h-3 w-3 rounded-full" style={{ backgroundColor: 'var(--tl-maximize)' }} />
+          <span
+            className="block h-3 w-3 rounded-full"
+            style={{ backgroundColor: 'var(--tl-close)' }}
+          />
+          <span
+            className="block h-3 w-3 rounded-full"
+            style={{ backgroundColor: 'var(--tl-minimize)' }}
+          />
+          <span
+            className="block h-3 w-3 rounded-full"
+            style={{ backgroundColor: 'var(--tl-maximize)' }}
+          />
         </div>
         {/* 窗口标题 */}
         <div
@@ -78,7 +89,13 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
             opacity: 0.8,
           }}
         >
-          <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="h-3.5 w-3.5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
           </svg>
           <span>文稿</span>
@@ -123,7 +140,13 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
             style={{ color: 'var(--mac-titlebar-text)' }}
             aria-label="后退"
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
@@ -133,16 +156,31 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
             style={{ color: 'var(--mac-titlebar-text)' }}
             aria-label="前进"
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
               <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
         {/* 视图切换 */}
-        <div className="flex items-center gap-1 rounded-md border px-1 py-0.5" style={{ borderColor: 'var(--mac-border)' }}>
+        <div
+          className="flex items-center gap-1 rounded-md border px-1 py-0.5"
+          style={{ borderColor: 'var(--mac-border)' }}
+        >
           {[
-            { icon: 'M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z', active: true },
-            { icon: 'M3 3h7v7H3zm1 1h5v5H4zM3 13h7v7H3zm1 1h5v5H4zM14 3h7v7h-7zm1 1h5v5h-5zM14 13h7v7h-7zm1 1h5v5h-5z', active: false },
+            {
+              icon: 'M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z',
+              active: true,
+            },
+            {
+              icon: 'M3 3h7v7H3zm1 1h5v5H4zM3 13h7v7H3zm1 1h5v5H4zM14 3h7v7h-7zm1 1h5v5h-5zM14 13h7v7h-7zm1 1h5v5h-5z',
+              active: false,
+            },
             { icon: 'M4 4h16v2H4zm0 5h16v2H4zm0 5h16v2H4zm0 5h16v2H4z', active: false },
           ].map((btn, i) => (
             <button
@@ -151,7 +189,9 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
               className="rounded p-1"
               style={{
                 color: 'var(--mac-titlebar-text)',
-                backgroundColor: btn.active ? 'color-mix(in srgb, var(--mac-app-bg) 70%, transparent)' : 'transparent',
+                backgroundColor: btn.active
+                  ? 'color-mix(in srgb, var(--mac-app-bg) 70%, transparent)'
+                  : 'transparent',
                 opacity: btn.active ? 1 : 0.5,
               }}
               aria-label="视图切换"
@@ -163,11 +203,22 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
           ))}
         </div>
         {/* 搜索 */}
-        <div className="ml-auto flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px]" style={{
-          backgroundColor: 'color-mix(in srgb, var(--mac-app-bg) 60%, transparent)',
-        }}>
-          <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--mac-secondary-text)' }}>
-            <circle cx={11} cy={11} r={7} /><path d="M16.5 16.5 21 21" strokeLinecap="round" />
+        <div
+          className="ml-auto flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px]"
+          style={{
+            backgroundColor: 'color-mix(in srgb, var(--mac-app-bg) 60%, transparent)',
+          }}
+        >
+          <svg
+            className="h-3 w-3"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            style={{ color: 'var(--mac-secondary-text)' }}
+          >
+            <circle cx={11} cy={11} r={7} />
+            <path d="M16.5 16.5 21 21" strokeLinecap="round" />
           </svg>
           <span style={{ color: 'var(--mac-secondary-text)' }}>搜索</span>
         </div>
@@ -229,12 +280,27 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
             >
               <div className="flex flex-1 items-center gap-2.5">
                 {file.type === 'folder' ? (
-                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" style={{ color: 'var(--mac-accent, #6366f1)' }}>
+                  <svg
+                    className="h-4 w-4 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    style={{ color: 'var(--mac-accent, #6366f1)' }}
+                  >
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                   </svg>
                 ) : (
-                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" strokeLinecap="round" strokeLinejoin="round" />
+                  <svg
+                    className="h-4 w-4 shrink-0"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                     <path d="M14 2v6h6" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
@@ -248,10 +314,16 @@ export function MacOSTemplate({ palette }: MacOSTemplateProps) {
                   {file.name}
                 </span>
               </div>
-              <span className="w-20 shrink-0 text-right text-[12px]" style={{ color: 'var(--mac-secondary-text)' }}>
+              <span
+                className="w-20 shrink-0 text-right text-[12px]"
+                style={{ color: 'var(--mac-secondary-text)' }}
+              >
                 {file.size}
               </span>
-              <span className="w-28 shrink-0 text-right text-[12px]" style={{ color: 'var(--mac-secondary-text)' }}>
+              <span
+                className="w-28 shrink-0 text-right text-[12px]"
+                style={{ color: 'var(--mac-secondary-text)' }}
+              >
                 {file.date}
               </span>
             </div>
@@ -283,7 +355,11 @@ function SidebarIcon({ name }: { name: string }) {
     case 'airplay':
       return (
         <svg className={size} viewBox="0 0 24 24" {...strokeProps}>
-          <path d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M5 17H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
           <path d="M12 15l5 6H7l5-6z" />
         </svg>
       )

@@ -1,5 +1,5 @@
 import type { Palette, PaletteRole } from '@chameleon/shared'
-import { PALETTE_ROLES, PALETTE_ROLE_LABELS } from '@chameleon/shared'
+import { PALETTE_ROLES, PALETTE_ROLE_LABELS, hasDarkMode } from '@chameleon/shared'
 
 interface PaletteCardProps {
   palette: Palette
@@ -7,6 +7,8 @@ interface PaletteCardProps {
 }
 
 export function PaletteCard({ palette, onClick }: PaletteCardProps) {
+  const showDark = hasDarkMode(palette)
+
   return (
     <button
       type="button"
@@ -24,6 +26,19 @@ export function PaletteCard({ palette, onClick }: PaletteCardProps) {
           />
         ))}
       </div>
+      {/* 暗色色条 */}
+      {showDark && palette.darkRoles && (
+        <div className="grid h-10 grid-cols-5 border-t border-white/20">
+          {PALETTE_ROLES.filter((role) => palette.darkRoles![role]).map((role) => (
+            <div
+              key={`dark-top-${role}`}
+              className="min-w-0"
+              style={{ backgroundColor: palette.darkRoles![role] }}
+              title={`暗色 ${PALETTE_ROLE_LABELS[role as PaletteRole]} ${palette.darkRoles![role]}`}
+            />
+          ))}
+        </div>
+      )}
       <div className="p-5">
         {/* 名称区域 */}
         <div className="mb-4 flex items-start justify-between gap-3">
@@ -37,11 +52,18 @@ export function PaletteCard({ palette, onClick }: PaletteCardProps) {
               </p>
             )}
           </div>
-          <span className="shrink-0 rounded-full bg-[var(--chm-surface-strong)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--chm-ink)]">
-            5 roles
-          </span>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {showDark && (
+              <span className="rounded-full bg-[var(--chm-surface-strong)] px-2 py-1 text-[10px] font-semibold uppercase">
+                🌙
+              </span>
+            )}
+            <span className="rounded-full bg-[var(--chm-surface-strong)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--chm-ink)]">
+              5 roles
+            </span>
+          </div>
         </div>
-        {/* 5 色位色点 */}
+        {/* 亮色色点 */}
         <div className="flex gap-1.5">
           {PALETTE_ROLES.filter((role) => palette.roles[role]).map((role) => (
             <div
@@ -51,10 +73,26 @@ export function PaletteCard({ palette, onClick }: PaletteCardProps) {
                 backgroundColor: palette.roles[role],
                 borderColor: 'var(--chm-hairline)',
               }}
-              title={`${PALETTE_ROLE_LABELS[role as PaletteRole]} ${palette.roles[role]}`}
+              title={`亮色 ${PALETTE_ROLE_LABELS[role as PaletteRole]} ${palette.roles[role]}`}
             />
           ))}
         </div>
+        {/* 暗色色点 */}
+        {showDark && palette.darkRoles && (
+          <div className="mt-1.5 flex gap-1.5">
+            {PALETTE_ROLES.filter((role) => palette.darkRoles![role]).map((role) => (
+              <div
+                key={`dark-${role}`}
+                className="h-3 w-full rounded-sm border"
+                style={{
+                  backgroundColor: palette.darkRoles![role],
+                  borderColor: 'rgba(255,255,255,0.15)',
+                }}
+                title={`暗色 ${PALETTE_ROLE_LABELS[role as PaletteRole]} ${palette.darkRoles![role]}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </button>
   )
