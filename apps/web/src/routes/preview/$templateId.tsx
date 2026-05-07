@@ -18,6 +18,7 @@ export const Route = createFileRoute('/preview/$templateId')({
 })
 
 const STORAGE_KEY = 'chameleon:palettes'
+const TUTORIAL_KEY = 'chameleon:immersive-tutorial-shown'
 const LONG_PRESS_MS = 600
 
 function ImmersiveTemplatePage() {
@@ -27,11 +28,21 @@ function ImmersiveTemplatePage() {
 
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [previewMode, setPreviewMode] = useState<PreviewMode>(search.mode ?? 'light')
+  const [showTutorial, setShowTutorial] = useState(false)
 
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement)
     document.addEventListener('fullscreenchange', handler)
     return () => document.removeEventListener('fullscreenchange', handler)
+  }, [])
+
+  // 首次使用：显示教学
+  useEffect(() => {
+    const shown = localStorage.getItem(TUTORIAL_KEY)
+    if (!shown) {
+      setShowTutorial(true)
+      localStorage.setItem(TUTORIAL_KEY, '1')
+    }
   }, [])
 
   const palettes = readStoredPalettes()
@@ -98,6 +109,9 @@ function ImmersiveTemplatePage() {
         )}
       </div>
 
+      {/* 首次使用教学 */}
+      {showTutorial && <TutorialOverlay onDismiss={() => setShowTutorial(false)} />}
+
       {/* 圆形控制按钮 — 长按出现，点击展开扇面 */}
       <ControlsPill
         paletteHasDark={paletteHasDark}
@@ -107,7 +121,35 @@ function ImmersiveTemplatePage() {
         onFullscreen={handleBrowserFullscreen}
         onGoBack={goBack}
         onGoToStore={goToStore}
+        autoShow={!showTutorial}
       />
+    </div>
+  )
+}
+
+/* ── 首次使用教学 ── */
+
+function TutorialOverlay({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="mx-4 max-w-xs rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-2xl">
+        {/* 手势动画 */}
+        <div className="mb-6 flex justify-center">
+          <div className="animate-pulse relative flex h-16 w-16 items-center justify-center rounded-full bg-white/10">
+            <span className="text-3xl">👆</span>
+          </div>
+        </div>
+        <h2 className="mb-2 text-lg font-medium text-white">沉浸预览</h2>
+        <p className="mb-1 text-sm leading-6 text-white/60">长按屏幕显示控制面板</p>
+        <p className="mb-6 text-sm leading-6 text-white/40">再次长按隐藏</p>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="rounded-full bg-white/15 px-8 py-2.5 text-sm font-medium text-white backdrop-blur-xl transition-colors hover:bg-white/25"
+        >
+          知道了
+        </button>
+      </div>
     </div>
   )
 }
@@ -122,11 +164,11 @@ interface ControlsPillProps {
   onFullscreen: () => void
   onGoBack: () => void
   onGoToStore: () => void
+  autoShow?: boolean
 }
 
 /** 计算扇形展开位置 */
-function getFanPosition(index: number, total: number, radius: number = 110) {
-  // 从左到右，扇形弧度为 140° → 40°
+function getFanPosition(index: number, total: number, radius: number = 100) {
   const startDeg = 145
   const endDeg = 35
   const angleDeg = total > 1 ? startDeg - (index * (startDeg - endDeg)) / (total - 1) : 90
@@ -137,6 +179,37 @@ function getFanPosition(index: number, total: number, radius: number = 110) {
   }
 }
 
+/** 临时 Chameleon Logo — 简洁几何变色龙 */
+function ChameleonLogo({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* 身体 - 椭圆形 */}
+      <ellipse cx={16} cy={19} rx={10} ry={7} fill="currentColor" opacity={0.9} />
+      {/* 头部 */}
+      <circle cx={14} cy={13} r={5} fill="currentColor" opacity={0.95} />
+      {/* 眼睛 */}
+      <circle cx={12.5} cy={12} r={2} fill="black" opacity={0.8} />
+      <circle cx={12.5} cy={11.5} r={0.8} fill="white" />
+      {/* 尾巴 - 卷曲 */}
+      <path
+        d="M26 21c3-1 4-4 3-6"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        opacity={0.8}
+      />
+      {/* 舌头 */}
+      <path
+        d="M9 14c-2 1-4 0-4-2s2-3 4-2"
+        stroke="currentColor"
+        strokeWidth={1.2}
+        strokeLinecap="round"
+        opacity={0.6}
+      />
+    </svg>
+  )
+}
+
 function ControlsPill({
   paletteHasDark,
   previewMode,
@@ -145,18 +218,26 @@ function ControlsPill({
   onFullscreen,
   onGoBack,
   onGoToStore,
+  autoShow = true,
 }: ControlsPillProps) {
-  const [pillVisible, setPillVisible] = useState(false)
+  const [pillVisible, setPillVisible] = useState(autoShow)
   const [menuOpen, setMenuOpen] = useState(false)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pillRef = useRef<HTMLDivElement>(null)
+
+  // 教学关闭后自动显示按钮
+  useEffect(() => {
+    if (autoShow && !pillVisible) {
+      setPillVisible(true)
+    }
+  }, [autoShow])
 
   // ── 长按检测 ──
   const startLongPress = useCallback((e: React.TouchEvent | React.MouseEvent) => {
     e.preventDefault()
     clearTimeout(longPressTimer.current)
     longPressTimer.current = setTimeout(() => {
-      setPillVisible((v) => !v) // toggle pill visibility
+      setPillVisible((v) => !v)
       setMenuOpen(false)
     }, LONG_PRESS_MS)
   }, [])
@@ -269,7 +350,7 @@ function ControlsPill({
   if (paletteHasDark) {
     actions.push({
       icon: <span className="text-lg leading-none">{previewMode === 'dark' ? '☀️' : '🌙'}</span>,
-      label: previewMode === 'dark' ? '亮色' : '暗色',
+      label: '亮暗',
       onClick: () => run(onToggleMode),
     })
   }
@@ -308,13 +389,14 @@ function ControlsPill({
       >
         {/* 扇形展开按钮 */}
         {actions.map((action, i) => {
-          const pos = getFanPosition(i, actionCount, 108)
+          const pos = getFanPosition(i, actionCount)
           return (
             <button
               key={i}
               type="button"
               onClick={action.onClick}
               className="absolute left-1/2 top-1/2 flex flex-col items-center gap-1"
+              title={action.label}
               style={{
                 transform: menuOpen
                   ? `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`
@@ -324,47 +406,25 @@ function ControlsPill({
                 transition: `all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.05}s`,
               }}
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur-2xl transition-colors hover:bg-white/25">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur-2xl transition-colors hover:bg-white/25">
                 {action.icon}
               </div>
-              <span
-                className="text-[11px] font-medium tracking-wide text-white/70"
-                style={{
-                  opacity: menuOpen ? 1 : 0,
-                  transition: `opacity 0.25s ease ${i * 0.05 + 0.15}s`,
-                }}
-              >
-                {action.label}
-              </span>
             </button>
           )
         })}
 
-        {/* 主圆形按钮 */}
+        {/* 主圆形按钮 — 变色龙 Logo */}
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          onTouchStart={(e) => {
-            // If pill already visible and we touch it, cancel the outer long-press
-            e.stopPropagation()
-          }}
-          className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white shadow-lg backdrop-blur-2xl transition-all hover:bg-white/30 active:scale-90"
+          onTouchStart={(e) => e.stopPropagation()}
+          className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 text-white/90 shadow-lg backdrop-blur-2xl transition-all hover:bg-white/30 active:scale-90"
           style={{
             transform: menuOpen ? 'scale(0.85)' : 'scale(1)',
             transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <circle cx={12} cy={5} r={1.5} fill="currentColor" stroke="none" />
-            <circle cx={12} cy={12} r={1.5} fill="currentColor" stroke="none" />
-            <circle cx={12} cy={19} r={1.5} fill="currentColor" stroke="none" />
-          </svg>
+          <ChameleonLogo className="h-6 w-6" />
         </button>
       </div>
     </>
