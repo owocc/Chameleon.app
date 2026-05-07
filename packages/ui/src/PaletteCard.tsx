@@ -41,28 +41,18 @@ export function PaletteCard({ palette, onClick }: PaletteCardProps) {
             5 roles
           </span>
         </div>
-        {/* 5 色位色块 + 标签 + hex */}
-        <div className="flex gap-2">
+        {/* 5 色位色点 */}
+        <div className="flex gap-1.5">
           {PALETTE_ROLES.filter((role) => palette.roles[role]).map((role) => (
             <div
               key={role}
-              className="flex flex-1 flex-col items-center gap-1.5"
-              title={`${PALETTE_ROLE_LABELS[role as PaletteRole]}: ${palette.roles[role]}`}
-            >
-              <span
-                className="block h-8 w-full rounded-lg border"
-                style={{
-                  backgroundColor: palette.roles[role],
-                  borderColor: 'var(--chm-hairline)',
-                }}
-              />
-              <span className="text-[10px] font-medium text-[var(--chm-muted)]">
-                {PALETTE_ROLE_LABELS[role as PaletteRole]}
-              </span>
-              <span className="font-mono text-[10px] uppercase text-[var(--chm-muted-soft)]">
-                {palette.roles[role]}
-              </span>
-            </div>
+              className="h-5 w-full rounded-md border"
+              style={{
+                backgroundColor: palette.roles[role],
+                borderColor: 'var(--chm-hairline)',
+              }}
+              title={`${PALETTE_ROLE_LABELS[role as PaletteRole]} ${palette.roles[role]}`}
+            />
           ))}
         </div>
       </div>
