@@ -191,7 +191,7 @@ export function XTemplate({ palette, mode = 'light', fill = false }: XTemplatePr
 
       {/* 底部 Tab */}
       <div
-        className="flex justify-around border-t px-2 py-1"
+        className="flex border-t py-1"
         style={{ borderColor: 'var(--xt-border)', backgroundColor: 'var(--xt-surface)' }}
       >
         {[
@@ -213,7 +213,7 @@ export function XTemplate({ palette, mode = 'light', fill = false }: XTemplatePr
             key={tab.page}
             type="button"
             onClick={() => setPage(tab.page)}
-            className="flex flex-col items-center px-4 py-1"
+            className="flex flex-1 flex-col items-center py-1"
             style={{ color: tab.page === page ? 'var(--xt-accent)' : 'var(--xt-secondary-text)' }}
           >
             <svg

@@ -360,7 +360,7 @@ function TabBar({
   ]
   return (
     <div
-      className="flex justify-around border-t px-2 py-1.5"
+      className="flex border-t py-1.5"
       style={{ borderColor: 'var(--wt-border)', backgroundColor: 'var(--wt-surface)' }}
     >
       {tabs.map((tab) => {
@@ -370,7 +370,7 @@ function TabBar({
             key={tab.label}
             type="button"
             onClick={() => onTabChange(tab.page)}
-            className="flex flex-col items-center gap-0.5 px-4 py-1 text-[10px]"
+            className="flex flex-1 flex-col items-center gap-0.5 py-1 text-[10px]"
             style={{ color: isActive ? 'var(--wt-accent)' : 'var(--wt-secondary-text)' }}
           >
             <svg
