@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import type { Palette } from '@chameleon/shared'
 import { PaletteCard } from '@chameleon/ui'
@@ -10,6 +10,7 @@ export const Route = createFileRoute('/')({
 const STORAGE_KEY = 'chameleon:palettes'
 
 function HomePage() {
+  const navigate = useNavigate()
   const [palettes, setPalettes] = useState<Palette[]>([])
 
   useEffect(() => {
@@ -63,7 +64,11 @@ function HomePage() {
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {palettes.map((p) => (
-            <PaletteCard key={p.id} palette={p} />
+            <PaletteCard
+              key={p.id}
+              palette={p}
+              onClick={() => navigate({ to: '/palette/$paletteId', params: { paletteId: p.id } })}
+            />
           ))}
         </div>
       )}
