@@ -244,7 +244,7 @@ function PalettePanel({ palettes, currentPaletteId, onSelect, onClose }: Palette
   return (
     <div
       ref={panelRef}
-      className="absolute bottom-24 left-1/2 z-50 w-[340px] max-w-[90vw] -translate-x-1/2 rounded-2xl border border-white/10 bg-white/10 p-4 shadow-2xl backdrop-blur-2xl"
+      className="absolute bottom-24 left-1/2 z-50 w-[340px] max-w-[90vw] -translate-x-1/2 rounded-2xl border border-white/[0.06] bg-black/90 p-4 shadow-2xl backdrop-blur-2xl"
     >
       <div className="mb-3 flex items-center justify-between">
         <span className="text-xs font-medium text-white/70">切换配色</span>
@@ -336,20 +336,46 @@ function ControlsIsland({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // ── 长按检测 ──
-  const startLongPress = useCallback((e: React.TouchEvent | React.MouseEvent) => {
-    e.preventDefault()
-    clearTimeout(longPressTimer.current)
-    longPressTimer.current = setTimeout(() => {
-      setIslandVisible((v) => !v)
-      setMenuOpen(false)
-      setPalettePanelOpen(false)
-    }, LONG_PRESS_MS)
-  }, [])
+  // ── 长按检测 — 挂载到 document body，不阻塞模板交互 ──
+  useEffect(() => {
+    // 岛可见或弹层打开时不需要长按检测
+    if (islandVisible || menuOpen || palettePanelOpen) return
 
-  const cancelLongPress = useCallback(() => {
-    clearTimeout(longPressTimer.current)
-  }, [])
+    const clearTimer = () => clearTimeout(longPressTimer.current)
+
+    const handleTouchStart = () => {
+      longPressTimer.current = setTimeout(() => {
+        setIslandVisible((v) => !v)
+        setMenuOpen(false)
+        setPalettePanelOpen(false)
+      }, LONG_PRESS_MS)
+    }
+
+    const handleMouseDown = () => {
+      longPressTimer.current = setTimeout(() => {
+        setIslandVisible((v) => !v)
+        setMenuOpen(false)
+        setPalettePanelOpen(false)
+      }, LONG_PRESS_MS)
+    }
+
+    document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    document.addEventListener('touchend', clearTimer, { passive: true })
+    document.addEventListener('touchmove', clearTimer, { passive: true })
+    document.addEventListener('mousedown', handleMouseDown)
+    document.addEventListener('mouseup', clearTimer)
+    document.addEventListener('mouseleave', clearTimer)
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchend', clearTimer)
+      document.removeEventListener('touchmove', clearTimer)
+      document.removeEventListener('mousedown', handleMouseDown)
+      document.removeEventListener('mouseup', clearTimer)
+      document.removeEventListener('mouseleave', clearTimer)
+      clearTimeout(longPressTimer.current)
+    }
+  }, [islandVisible, menuOpen, palettePanelOpen])
 
   // 关闭所有弹层
   const closeAll = useCallback(() => {
@@ -493,19 +519,6 @@ function ControlsIsland({
         <div className="fixed inset-0 z-40 bg-black/20" onClick={closeAll} />
       )}
 
-      {/* 长按区域 — 全屏，只在岛隐藏时激活 */}
-      {!islandVisible && !menuOpen && !palettePanelOpen && (
-        <div
-          className="fixed inset-0 z-30"
-          onTouchStart={startLongPress}
-          onTouchEnd={cancelLongPress}
-          onTouchMove={cancelLongPress}
-          onMouseDown={startLongPress}
-          onMouseUp={cancelLongPress}
-          onMouseLeave={cancelLongPress}
-        />
-      )}
-
       {/* 底部岛 + 弹出层 */}
       <div
         ref={containerRef}
@@ -540,7 +553,7 @@ function ControlsIsland({
                     transition: `all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.05}s`,
                   }}
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white shadow-lg backdrop-blur-2xl transition-colors hover:bg-white/25">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-black/80 text-white shadow-lg backdrop-blur-xl transition-colors hover:bg-white/20">
                     {action.icon}
                   </div>
                 </button>
@@ -549,12 +562,11 @@ function ControlsIsland({
           </div>
         )}
 
-        {/* 灵动岛主体 */}
+        {/* 灵动岛主体 — Apple Dynamic Island 风格：纯黑胶囊形 */}
         <div
-          className="mx-auto mb-6 flex items-center gap-3 rounded-2xl border border-white/15 bg-white/10 px-3 py-2 shadow-2xl backdrop-blur-2xl"
+          className="mx-auto mb-6 flex items-center gap-2.5 rounded-full border border-white/[0.06] bg-black px-4 py-2 shadow-2xl"
           style={{
-            minWidth: '200px',
-            maxWidth: '280px',
+            minWidth: '180px',
           }}
           onTouchStart={(e) => e.stopPropagation()}
         >
