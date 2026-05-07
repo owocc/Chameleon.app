@@ -395,6 +395,25 @@ function ControlsIsland({
   // 菜单按钮的动作
   const menuActions: { icon: React.ReactNode; label: string; onClick: () => void }[] = [
     {
+      icon: (
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <circle cx={12} cy={12} r={3} />
+          <circle cx={12} cy={12} r={7} strokeDasharray="2 3" />
+        </svg>
+      ),
+      label: '配色',
+      onClick: () => {
+        setMenuOpen(false)
+        setPalettePanelOpen((v) => !v)
+      },
+    },
+    {
       icon: isFullscreen ? (
         <svg
           className="h-5 w-5"
