@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import type { Palette, PaletteRoleMap } from '@chameleon/shared'
 import { hasDarkMode, PALETTE_ROLES } from '@chameleon/shared'
-import { WeChatTemplate, XTemplate, MacOSTemplate } from '@chameleon/ui'
+import { WeChatTemplate, XTemplate, MacOSTemplate, StatusBar } from '@chameleon/ui'
 
 type PreviewMode = 'light' | 'dark'
 
@@ -19,6 +19,7 @@ export const Route = createFileRoute('/preview/$templateId')({
 
 const STORAGE_KEY = 'chameleon:palettes'
 const TUTORIAL_KEY = 'chameleon:immersive-tutorial-shown'
+const STATUS_BAR_KEY = 'chameleon:simulated-status-bar'
 const LONG_PRESS_MS = 600
 
 function ImmersiveTemplatePage() {
@@ -30,6 +31,25 @@ function ImmersiveTemplatePage() {
   const [previewMode, setPreviewMode] = useState<PreviewMode>(search.mode ?? 'light')
   const [showTutorial, setShowTutorial] = useState(false)
   const [selectedPaletteId, setSelectedPaletteId] = useState(search.paletteId)
+
+  // 模拟状态栏 — 默认显示，可从设置和菜单中切换
+  const [showStatusBar, setShowStatusBar] = useState(() => {
+    try {
+      return localStorage.getItem(STATUS_BAR_KEY) !== 'hidden'
+    } catch {
+      return true
+    }
+  })
+
+  const handleToggleStatusBar = useCallback(() => {
+    setShowStatusBar((v) => {
+      const next = !v
+      try {
+        localStorage.setItem(STATUS_BAR_KEY, next ? 'shown' : 'hidden')
+      } catch {}
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement)
@@ -77,13 +97,21 @@ function ImmersiveTemplatePage() {
   }, [navigate, selectedPaletteId, templateId, previewMode])
 
   return (
-    <div className="fixed inset-0 z-50 flex overflow-hidden bg-black">
-      {/* 模板占满整个容器 */}
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-black">
+      {/* 可选的模拟状态栏 */}
+      {showStatusBar && <StatusBar />}
+
+      {/* 模板占满剩余容器 */}
       <div className="flex flex-1 items-center justify-center">
         {currentPalette ? (
           <div className="h-full w-full">
             {templateId === 'wechat' ? (
-              <WeChatTemplate palette={currentPalette} mode={previewMode} fill={true} />
+              <WeChatTemplate
+                palette={currentPalette}
+                mode={previewMode}
+                fill={true}
+                hideStatusBar={showStatusBar}
+              />
             ) : templateId === 'x' ? (
               <XTemplate palette={currentPalette} mode={previewMode} fill={true} />
             ) : templateId === 'macos' ? (
@@ -121,6 +149,8 @@ function ImmersiveTemplatePage() {
         isFullscreen={isFullscreen}
         onFullscreen={handleBrowserFullscreen}
         onGoBack={goBack}
+        showStatusBar={showStatusBar}
+        onToggleStatusBar={handleToggleStatusBar}
       />
     </div>
   )
@@ -316,6 +346,8 @@ interface ControlsIslandProps {
   isFullscreen: boolean
   onFullscreen: () => void
   onGoBack: () => void
+  showStatusBar: boolean
+  onToggleStatusBar: () => void
 }
 
 function ControlsIsland({
@@ -328,6 +360,8 @@ function ControlsIsland({
   isFullscreen,
   onFullscreen,
   onGoBack,
+  showStatusBar,
+  onToggleStatusBar,
 }: ControlsIslandProps) {
   const [islandVisible, setIslandVisible] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -478,6 +512,38 @@ function ControlsIsland({
       ),
       label: '返回',
       onClick: () => runAction(onGoBack),
+    },
+    {
+      icon: (
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={1.5}
+        >
+          <rect
+            x={4}
+            y={2}
+            width={16}
+            height={20}
+            rx={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {showStatusBar && (
+            <>
+              <line x1={7} y1={6} x2={17} y2={6} strokeLinecap="round" />
+              <circle cx={12} cy={9} r={1.5} fill="currentColor" stroke="none" />
+            </>
+          )}
+        </svg>
+      ),
+      label: showStatusBar ? '隐藏状态栏' : '显示状态栏',
+      onClick: () => {
+        closeAll()
+        onToggleStatusBar()
+      },
     },
   ]
 

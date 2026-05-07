@@ -7,6 +7,8 @@ interface WeChatTemplateProps {
   mode?: 'light' | 'dark'
   /** 填满容器（用于移动端沉浸模式） */
   fill?: boolean
+  /** 隐藏内置状态栏（由布局层模拟状态栏替代） */
+  hideStatusBar?: boolean
 }
 
 type WeChatPage = 'chats' | 'contacts' | 'discover' | 'profile'
@@ -55,7 +57,12 @@ function buildTokenCSS(tokens: TemplateTokenMap): React.CSSProperties {
   } as React.CSSProperties
 }
 
-export function WeChatTemplate({ palette, mode = 'light', fill = false }: WeChatTemplateProps) {
+export function WeChatTemplate({
+  palette,
+  mode = 'light',
+  fill = false,
+  hideStatusBar = false,
+}: WeChatTemplateProps) {
   const roles = getRolesForMode(palette.roles, mode, palette.darkRoles)
   const tokens = mapPaletteToTemplateTokens(roles, 'wechat')
   const [page, setPage] = useState<WeChatPage>('chats')
@@ -71,21 +78,23 @@ export function WeChatTemplate({ palette, mode = 'light', fill = false }: WeChat
         ...buildTokenCSS(tokens),
       }}
     >
-      {/* 状态栏 */}
-      <div
-        className="flex items-center justify-between px-6 py-2 text-[11px] font-semibold"
-        style={{ color: 'var(--wt-nav-text)', backgroundColor: 'var(--wt-nav-bg)' }}
-      >
-        <span>9:41</span>
-        <div className="flex items-center gap-1">
-          <svg className="h-3 w-4" viewBox="0 0 16 12" fill="currentColor">
-            <path d="M1 9h2V5H1v4zm3 2h2V3H4v8zm3-4h2V1H7v6zm3 2h2V5h-2v4z" />
-          </svg>
-          <svg className="h-3 w-4" viewBox="0 0 16 12" fill="currentColor">
-            <path d="M11 2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
-          </svg>
+      {/* 状态栏（可由布局层模拟状态栏替代） */}
+      {!hideStatusBar && (
+        <div
+          className="flex items-center justify-between px-6 py-2 text-[11px] font-semibold"
+          style={{ color: 'var(--wt-nav-text)', backgroundColor: 'var(--wt-nav-bg)' }}
+        >
+          <span>9:41</span>
+          <div className="flex items-center gap-1">
+            <svg className="h-3 w-4" viewBox="0 0 16 12" fill="currentColor">
+              <path d="M1 9h2V5H1v4zm3 2h2V3H4v8zm3-4h2V1H7v6zm3 2h2V5h-2v4z" />
+            </svg>
+            <svg className="h-3 w-4" viewBox="0 0 16 12" fill="currentColor">
+              <path d="M11 2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z" />
+            </svg>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 导航栏 */}
       <div
@@ -259,11 +268,11 @@ function ContactsPage() {
 
 function DiscoverPage() {
   const items = [
-    { icon: '🔄', label: '朋友圈', desc: '和朋友分享生活点滴' },
-    { icon: '📺', label: '视频号', desc: '关注你感兴趣的创作者' },
+    { icon: '🔄', label: '动态', desc: '和朋友分享生活点滴' },
+    { icon: '📺', label: '视频', desc: '关注你感兴趣的创作者' },
     { icon: '🔍', label: '扫一扫', desc: '扫描二维码' },
-    { icon: '🤝', label: '摇一摇', desc: '认识新朋友' },
-    { icon: '📍', label: '附近的人', desc: '查看附近的人' },
+    { icon: '🎵', label: '音乐', desc: '发现热门歌曲和播客' },
+    { icon: '📍', label: '附近', desc: '发现身边的人和事' },
   ]
   return (
     <div className="flex-1 overflow-y-auto" style={{ backgroundColor: 'var(--wt-app-bg)' }}>

@@ -1,6 +1,7 @@
 export { ColorSwatch } from './ColorSwatch'
 export { PaletteCard } from './PaletteCard'
 export { ColorPicker } from './ColorPicker'
+export { StatusBar } from './StatusBar'
 export { WeChatTemplate } from './WeChatTemplate'
 export { XTemplate } from './XTemplate'
 export { MacOSTemplate } from './MacOSTemplate'
